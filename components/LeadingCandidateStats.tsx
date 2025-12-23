@@ -23,8 +23,9 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
   let maxVotes = -1;
 
   Object.entries(candidateCounts).forEach(([cand, count]) => {
-    if (count > maxVotes) {
-      maxVotes = count;
+    const voteCount = count as number;
+    if (voteCount > maxVotes) {
+      maxVotes = voteCount;
       leader = cand;
     }
   });
@@ -34,14 +35,22 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
   // 2. Prepare data for the leader
   const leaderVotes = activeVotes.filter(v => v.candidate === leader);
   const totalLeaderVotes = leaderVotes.length;
-  // Percentage against VALID votes (active votes), not total including abstentions
-  const percentageOfTotal = ((totalLeaderVotes / activeVotes.length) * 100).toFixed(1);
+  
+  // Percentage against VALID votes (active votes)
+  const percentageOfValid = ((totalLeaderVotes / activeVotes.length) * 100).toFixed(1);
+
+  // Percentage against TOTAL votes (including abstentions)
+  const percentageOfTotal = votes.length > 0 
+    ? ((totalLeaderVotes / votes.length) * 100).toFixed(1) 
+    : "0.0";
 
   const breakdownData = DEPARTMENT_LIST.map(dept => {
     const leaderCountInDept = leaderVotes.filter(v => v.department === dept).length;
-    const totalVotesInDept = activeVotes.filter(v => v.department === dept).length;
     
-    // Calculate domination percentage: (Votes for Leader in Dept / Total Valid Votes in Dept)
+    // Count ALL votes in department (including abstentions) for the total/denominator
+    const totalVotesInDept = votes.filter(v => v.department === dept).length;
+    
+    // Calculate domination percentage: (Votes for Leader in Dept / Total Votes in Dept)
     const dominationPercent = totalVotesInDept > 0 
         ? ((leaderCountInDept / totalVotesInDept) * 100).toFixed(1) 
         : "0.0";
@@ -79,13 +88,23 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                             )}
                             <span className="whitespace-normal">{leader}</span>
                         </h1>
-                         <span className="text-sm md:text-lg font-medium text-slate-300 mt-1 md:mt-2 block flex items-center gap-2 md:gap-3 flex-wrap">
-                            <span className="relative flex h-2 w-2 md:h-3 md:w-3">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 md:h-3 md:w-3 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                        
+                        <div className="mt-2 flex flex-col gap-1">
+                            {/* Valid Votes Stat */}
+                            <span className="text-sm md:text-lg font-medium text-slate-300 flex items-center gap-2 md:gap-3 flex-wrap">
+                                <span className="relative flex h-2 w-2 md:h-3 md:w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 md:h-3 md:w-3 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                                </span>
+                                Holding <span className="text-white font-bold text-base md:text-xl">{percentageOfValid}%</span> of valid votes
                             </span>
-                            Holding <span className="text-white font-bold text-base md:text-xl">{percentageOfTotal}%</span> of valid votes
-                        </span>
+
+                            {/* Total Votes Stat */}
+                            <span className="text-xs md:text-sm font-medium text-slate-500 flex items-center gap-2 md:gap-3 pl-0.5">
+                                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-slate-600 ml-0.5"></span>
+                                Holding <span className="text-slate-400 font-bold text-sm md:text-base">{percentageOfTotal}%</span> of total votes
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -113,7 +132,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                 tickLine={false}
                             />
                             <Tooltip 
-                                cursor={{fill: '#334155', opacity: 0.4}}
+                                cursor={false}
                                 contentStyle={{ 
                                     backgroundColor: '#0f172a', 
                                     borderColor: '#475569', 
@@ -144,7 +163,8 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                 
                                 <div className="flex justify-between items-center mb-1 md:mb-2 mt-2">
                                     <span className="text-xs md:text-sm font-bold text-slate-300 group-hover:text-white transition-colors">{d.name}</span>
-                                    <span className={`text-[10px] md:text-xs font-mono font-bold px-1.5 md:px-2 py-0.5 rounded border ${Number(d.percent) > 50 ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
+                                    {/* UPDATED: Removed conditional class logic, forced green style for readability */}
+                                    <span className="text-[10px] md:text-xs font-mono font-bold px-1.5 md:px-2 py-0.5 rounded border bg-green-500/10 text-green-400 border-green-500/30">
                                         {d.percent}%
                                     </span>
                                 </div>

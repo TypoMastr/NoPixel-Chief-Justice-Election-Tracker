@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Vote, Candidate } from '../types';
@@ -10,7 +9,7 @@ interface ResultsSectionProps {
 
 export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
   const abstainedVotes = votes.filter(v => v.candidate === Candidate.ABSTAINED).length;
-  const validVotes = votes.length - abstainedVotes;
+  const totalVotes = votes.length;
 
   // Process data for ACTIVE candidates only
   const data = ACTIVE_CANDIDATES.map(candidate => {
@@ -62,8 +61,8 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
         {/* Grid-cols-2 on mobile for side-by-side cards */}
         <div className="grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-5">
           {data.map((item) => {
-            // Percent of VALID votes
-            const percentage = validVotes > 0 ? ((item.value / validVotes) * 100).toFixed(1) : "0.0";
+            // Percent of TOTAL votes (including abstentions)
+            const percentage = totalVotes > 0 ? ((item.value / totalVotes) * 100).toFixed(1) : "0.0";
             return (
               <div key={item.name} className="group bg-slate-900 p-3 md:p-5 rounded-xl border border-slate-600 hover:border-teal-500/50 transition-all duration-300 relative overflow-hidden shadow-md hover:shadow-lg">
                 {/* Background bar */}
@@ -126,8 +125,8 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                 data={chartData.filter(d => d.value > 0)}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={80} 
+                innerRadius="60%"
+                outerRadius="80%" 
                 paddingAngle={4}
                 dataKey="value"
                 stroke="none"
