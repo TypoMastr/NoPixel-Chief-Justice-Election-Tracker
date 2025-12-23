@@ -11,7 +11,7 @@ interface CountUpProps {
 
 export const CountUp: React.FC<CountUpProps> = ({ 
   end, 
-  duration = 1500, 
+  duration = 800, // Reduced from 1500ms to 800ms
   decimals = 0, 
   suffix = '', 
   prefix = '',

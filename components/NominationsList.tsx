@@ -59,7 +59,7 @@ export const NominationsList: React.FC = () => {
 
   return (
     <ScrollReveal>
-      <div className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl mb-12 relative overflow-hidden group">
+      <div className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl mb-2 relative overflow-hidden group">
         {/* Background Decoration */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/5 rounded-full blur-3xl pointer-events-none -mr-10 -mt-10"></div>
         

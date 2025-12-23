@@ -272,14 +272,14 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                         </h3>
                         <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 md:gap-4 place-content-start">
                             {breakdownData.map((d, i) => (
-                                <ScrollReveal key={d.name} delay={i * 100} width="100%">
+                                <ScrollReveal key={d.name} delay={i * 50} width="100%">
                                     <div className="flex flex-col p-3 md:p-4 rounded-xl bg-slate-800/60 border border-slate-500/50 transition-all duration-300 group relative overflow-hidden h-full">
                                         <div className="absolute top-0 left-0 h-1 bg-slate-700/30 w-full">
                                             <AnimatedBar 
                                                 targetWidth={`${d.percent}%`}
                                                 backgroundColor={leaderColor}
                                                 className="h-full"
-                                                delay={500 + (i * 100)}
+                                                delay={100 + (i * 50)}
                                             />
                                         </div>
                                         

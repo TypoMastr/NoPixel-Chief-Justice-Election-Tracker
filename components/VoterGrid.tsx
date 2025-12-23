@@ -86,7 +86,7 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
   };
 
   return (
-    <div className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl mb-12">
+    <div className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl mb-4">
       <div className="flex justify-between items-center mb-4 md:mb-8 border-b border-white/5 pb-2 md:pb-4">
         <h2 className="text-lg md:text-2xl font-bold text-teal-400 flex items-center gap-2 md:gap-3">
           👥 Voters List <span className="text-slate-300 text-[10px] md:text-sm font-bold bg-slate-800/50 px-2 py-0.5 md:px-3 md:py-1 rounded-full border border-slate-600/50">Total: {votes.length}</span>

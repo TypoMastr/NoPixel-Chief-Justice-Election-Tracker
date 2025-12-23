@@ -95,7 +95,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                     // Percent of TOTAL votes (including abstentions)
                     const percentage = totalVotes > 0 ? (item.value / totalVotes) * 100 : 0;
                     return (
-                    <ScrollReveal key={item.name} delay={idx * 150} width="100%">
+                    <ScrollReveal key={item.name} delay={idx * 50} width="100%">
                         <div 
                             className="group bg-slate-800/80 p-3 md:p-5 rounded-xl border border-teal-500/50 transition-all duration-300 relative overflow-hidden shadow-lg h-full"
                         >
@@ -104,7 +104,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                                 targetWidth={`${percentage}%`}
                                 backgroundColor={COLORS[item.name as Candidate]}
                                 className="absolute top-0 bottom-0 left-0 opacity-[0.25]"
-                                delay={idx * 150 + 200}
+                                delay={idx * 50 + 100}
                             />
                             
                             <div className="relative z-10">
@@ -143,7 +143,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                 </div>
                 
                 {/* Abstained Small Summary */}
-                <ScrollReveal delay={400} width="100%">
+                <ScrollReveal delay={200} width="100%">
                     <div className="mt-4 p-3 bg-slate-900/30 border border-white/5 rounded-lg flex justify-between items-center hover:bg-slate-800/50 transition-colors">
                         <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Abstained</span>
                         <span className="text-slate-200 font-mono font-bold">
@@ -157,7 +157,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
 
       {/* Chart Column */}
       <div className="order-1 lg:order-2">
-        <ScrollReveal delay={200}>
+        <ScrollReveal delay={100}>
             <div ref={chartRef} className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl flex flex-col">
                 {/* Fixed: Added py-1 to prevent bg-clip-text clipping */}
                 <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-2 md:mb-6 flex items-center gap-3 border-b border-white/5 pb-4 py-1">
@@ -178,7 +178,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                         label={renderCustomizedLabel}
                         labelLine={true}
                         isAnimationActive={true}
-                        animationDuration={1500}
+                        animationDuration={800} // Speed up
                         animationEasing="ease-out"
                     >
                         {chartData.filter(d => d.value > 0).map((entry, index) => (

@@ -84,7 +84,7 @@ export const DepartmentSection: React.FC<DepartmentSectionProps> = ({ votes }) =
                     radius={[6, 6, 0, 0]} 
                     barSize={30}
                     isAnimationActive={true}
-                    animationDuration={1500}
+                    animationDuration={800} // Speed up
                     animationEasing="ease-out"
                 >
                   <LabelList 
@@ -113,7 +113,7 @@ export const DepartmentSection: React.FC<DepartmentSectionProps> = ({ votes }) =
         </ScrollReveal>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {data.map((dept, idx) => (
-            <ScrollReveal key={dept.name} delay={idx * 100}>
+            <ScrollReveal key={dept.name} delay={idx * 50}>
                 <div className="bg-slate-900/50 p-4 rounded-xl border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-teal-500/30 transition-colors shadow-sm h-full">
                 {/* Progress bar background using AnimatedBar */}
                 <div className="absolute bottom-0 left-0 w-full h-1.5 bg-slate-800">
@@ -121,7 +121,7 @@ export const DepartmentSection: React.FC<DepartmentSectionProps> = ({ votes }) =
                         targetWidth={`${Math.min(dept.count * 5, 100)}%`} 
                         backgroundColor="#14b8a6" 
                         className="h-full"
-                        delay={500 + (idx * 100)}
+                        delay={200 + (idx * 50)}
                     />
                 </div>
 

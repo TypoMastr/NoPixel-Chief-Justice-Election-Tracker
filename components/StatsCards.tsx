@@ -12,9 +12,9 @@ interface StatsCardsProps {
 export const StatsCards: React.FC<StatsCardsProps> = ({ totalVotes, validVotes, abstentions, candidateCount }) => {
   const cards = [
     { label: "Total Votes", value: totalVotes, sub: "Cast", delay: 0 },
-    { label: "Valid Votes", value: validVotes, sub: "Active", delay: 100 },
-    { label: "Abstentions", value: abstentions, color: "text-slate-400", sub: "Recused", delay: 200 },
-    { label: "Candidates", value: candidateCount, sub: "Running", delay: 300 },
+    { label: "Valid Votes", value: validVotes, sub: "Active", delay: 50 },
+    { label: "Abstentions", value: abstentions, color: "text-slate-400", sub: "Recused", delay: 100 },
+    { label: "Candidates", value: candidateCount, sub: "Running", delay: 150 },
   ];
 
   return (
@@ -34,7 +34,7 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ totalVotes, validVotes, 
                 <h3 className="text-teal-300 text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors">{card.label}</h3>
                 </div>
                 <div className={`text-2xl md:text-5xl font-black tracking-tighter drop-shadow-sm transition-all duration-300 origin-left ${card.color || 'text-white'}`}>
-                    <CountUp end={card.value} duration={2000} />
+                    <CountUp end={card.value} duration={1000} />
                 </div>
                 <p className="hidden md:flex text-[10px] md:text-xs text-slate-500 font-medium mt-1 md:mt-3 border-t border-white/5 pt-1 md:pt-3 items-center justify-center md:justify-start gap-1 md:gap-2 w-full">
                     {/* Permanent teal dot */}

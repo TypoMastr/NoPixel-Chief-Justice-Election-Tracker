@@ -159,7 +159,7 @@ const App: React.FC = () => {
     <div className="min-h-screen p-2 md:p-8 text-slate-200 font-sans flex flex-col relative overflow-x-hidden">
       <ParallaxBackground />
       
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-10 w-full flex-grow pb-24 md:pb-0 z-10">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-10 w-full flex-grow pb-12 md:pb-0 z-10">
         
         {/* Header */}
         <ScrollReveal>
@@ -240,7 +240,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Footer / Admin Login */}
-      <footer className="mt-8 md:mt-20 py-6 border-t border-slate-800/50 text-center mb-16 md:mb-0 z-10">
+      <footer className="mt-4 md:mt-8 py-4 border-t border-slate-800/50 text-center mb-16 md:mb-0 z-10">
         {isAdmin ? (
              <button 
                 onClick={handleLogout}
