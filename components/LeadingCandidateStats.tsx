@@ -169,7 +169,9 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                     tickLine={false}
                                 />
                                 <Tooltip 
-                                    cursor={{ fill: 'rgba(255,255,255,0.05)', radius: 4 }}
+                                    cursor={false}
+                                    isAnimationActive={false}
+                                    offset={20}
                                     contentStyle={{ 
                                         backgroundColor: 'rgba(15, 23, 42, 0.95)', 
                                         borderColor: 'rgba(255,255,255,0.1)', 
@@ -178,6 +180,8 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                         backdropFilter: 'blur(8px)',
                                         boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
                                     }}
+                                    itemStyle={{ color: '#fff' }}
+                                    labelStyle={{ color: '#fff' }}
                                     formatter={(value: number) => [`${value} votes for ${leader}`]}
                                 />
                                 <Bar 

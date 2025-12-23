@@ -67,7 +67,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
             fontWeight: '700', 
             fill: '#f8fafc', 
             filter: 'drop-shadow(0px 2px 2px rgba(0,0,0,0.9))',
-            animationDelay: '0.5s'
+            animationDelay: '0s'
         }}
       >
         {`${(percent * 100).toFixed(0)}%`}
@@ -186,6 +186,8 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                         ))}
                     </Pie>
                     <Tooltip 
+                        isAnimationActive={false}
+                        offset={20}
                         contentStyle={{ 
                             backgroundColor: 'rgba(15, 23, 42, 0.90)', 
                             borderColor: 'rgba(255,255,255,0.1)', 
@@ -195,6 +197,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
                         }}
                         itemStyle={{ color: '#fff', fontWeight: 600, fontSize: '14px' }}
+                        labelStyle={{ color: '#fff' }}
                         cursor={{ fill: 'transparent' }}
                     />
                     <Legend 

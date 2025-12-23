@@ -72,7 +72,11 @@ export const DepartmentSection: React.FC<DepartmentSectionProps> = ({ votes }) =
                 <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip 
                   cursor={{fill: '#334155', opacity: 0.4}}
+                  isAnimationActive={false}
+                  offset={20}
                   contentStyle={{ backgroundColor: '#0f172a', borderColor: '#475569', color: '#fff', borderRadius: '8px' }}
+                  itemStyle={{ color: '#fff' }}
+                  labelStyle={{ color: '#fff' }}
                 />
                 <Bar 
                     dataKey="count" 
