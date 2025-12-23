@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Vote, Candidate } from './types';
-import { CANDIDATE_LIST } from './constants';
+import { CANDIDATE_LIST, ACTIVE_CANDIDATES } from './constants';
 import { StatsCards } from './components/StatsCards';
 import { ResultsSection } from './components/ResultsSection';
 import { DepartmentDetailedStats } from './components/DepartmentDetailedStats';
@@ -125,7 +125,7 @@ const App: React.FC = () => {
   const totalVotes = votes.length;
   const abstentions = votes.filter(v => v.candidate === Candidate.ABSTAINED).length;
   const validVotes = totalVotes - abstentions;
-  const candidateCount = CANDIDATE_LIST.length;
+  const candidateCount = ACTIVE_CANDIDATES.length;
 
   if (isLoading) {
     return (
@@ -137,17 +137,17 @@ const App: React.FC = () => {
   }
 
   return (
-    // Changed background to a slightly lighter slate 900 base for better contrast with cards
-    <div className="min-h-screen bg-slate-900 p-4 md:p-8 text-slate-200 font-sans flex flex-col">
-      <div className="max-w-7xl mx-auto space-y-10 w-full flex-grow">
+    // Compact padding on mobile (p-2)
+    <div className="min-h-screen bg-slate-900 p-2 md:p-8 text-slate-200 font-sans flex flex-col">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-10 w-full flex-grow pb-24 md:pb-0">
         
         {/* Header */}
-        <div className="relative overflow-hidden bg-slate-800 border border-slate-600 rounded-2xl p-8 text-center shadow-2xl ring-1 ring-white/5">
+        <div className="relative overflow-hidden bg-slate-800 border border-slate-600 rounded-2xl p-4 md:p-8 text-center shadow-2xl ring-1 ring-white/5">
            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500 opacity-90"></div>
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight flex items-center justify-center gap-4 drop-shadow-lg">
-            <Scale className="w-10 h-10 md:w-12 md:h-12 text-teal-400" />
-            Chief Justice Election
-            <Gavel className="w-10 h-10 md:w-12 md:h-12 text-blue-500 transform -scale-x-100" />
+          <h1 className="text-lg sm:text-xl md:text-5xl font-black text-white tracking-tight flex flex-row items-center justify-center gap-2 md:gap-4 drop-shadow-lg leading-tight whitespace-nowrap">
+             <Scale className="w-5 h-5 md:w-12 md:h-12 text-teal-400" />
+             <span>Chief Justice Election</span>
+             <Gavel className="w-5 h-5 md:w-12 md:h-12 text-blue-500 transform -scale-x-100" />
           </h1>
         </div>
 
@@ -178,7 +178,7 @@ const App: React.FC = () => {
                   href="https://discord.com/channels/85441497989664768/1032678228512493619/1452750119471681699"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-[#5865F2]/25 hover:-translate-y-1 border border-[#5865F2]/50"
+                  className="flex items-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] text-white px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-[#5865F2]/25 hover:-translate-y-1 border border-[#5865F2]/50 text-sm md:text-base w-full md:w-auto justify-center"
               >
                   <ExternalLink className="w-5 h-5" />
                   <span>View Latest Updates on Discord</span>
@@ -188,11 +188,11 @@ const App: React.FC = () => {
       </div>
 
       {/* Footer / Admin Login */}
-      <footer className="mt-20 py-6 border-t border-slate-800 text-center">
+      <footer className="mt-8 md:mt-20 py-6 border-t border-slate-800 text-center mb-16 md:mb-0">
         {isAdmin ? (
              <button 
                 onClick={() => setIsAdmin(false)}
-                className="text-slate-500 hover:text-red-400 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 mx-auto transition-colors"
+                className="text-slate-500 hover:text-red-400 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 mx-auto transition-colors p-4"
              >
                 <LogOut className="w-4 h-4" />
                 Logout Admin
@@ -200,7 +200,7 @@ const App: React.FC = () => {
         ) : (
             <button 
                 onClick={() => setIsLoginModalOpen(true)}
-                className="text-slate-600 hover:text-teal-500 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 mx-auto transition-colors"
+                className="text-slate-600 hover:text-teal-500 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 mx-auto transition-colors p-4"
              >
                 <Lock className="w-3 h-3" />
                 Administration
@@ -212,10 +212,11 @@ const App: React.FC = () => {
       {isAdmin && (
         <button 
             onClick={openAddModal}
-            className="fixed bottom-8 right-8 bg-teal-500 hover:bg-teal-400 text-slate-950 p-4 rounded-full shadow-[0_0_30px_rgba(20,184,166,0.3)] hover:shadow-[0_0_40px_rgba(20,184,166,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center z-40 group border-4 border-slate-900"
+            className="fixed bottom-6 right-6 md:bottom-8 md:right-8 bg-teal-500 hover:bg-teal-400 text-slate-950 p-4 rounded-full shadow-[0_0_30px_rgba(20,184,166,0.3)] hover:shadow-[0_0_40px_rgba(20,184,166,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center z-40 group border-4 border-slate-900"
             title="Record New Vote"
+            style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
         >
-            <Plus className="w-8 h-8 stroke-[3] group-hover:rotate-90 transition-transform duration-300" />
+            <Plus className="w-6 h-6 md:w-8 md:h-8 stroke-[3] group-hover:rotate-90 transition-transform duration-300" />
         </button>
       )}
 

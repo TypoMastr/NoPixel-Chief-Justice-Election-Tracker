@@ -50,7 +50,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
                 setPassword(e.target.value);
                 setError(false);
               }}
-              className={`w-full bg-slate-900 border ${error ? 'border-red-500' : 'border-slate-600'} rounded px-3 py-2 text-white focus:outline-none focus:border-teal-500 transition-colors`}
+              className={`w-full bg-slate-900 border ${error ? 'border-red-500' : 'border-slate-600'} rounded px-3 py-3 text-white focus:outline-none focus:border-teal-500 transition-colors text-base`}
               placeholder="Enter admin password"
               autoFocus
             />
@@ -59,7 +59,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
 
           <button
             type="submit"
-            className="w-full px-4 py-3 bg-teal-600 text-white rounded hover:bg-teal-500 font-bold transition-colors shadow-lg shadow-teal-900/20"
+            className="w-full px-4 py-4 md:py-3 bg-teal-600 text-white rounded hover:bg-teal-500 font-bold transition-colors shadow-lg shadow-teal-900/20 text-base md:text-sm"
           >
             Unlock Dashboard
           </button>

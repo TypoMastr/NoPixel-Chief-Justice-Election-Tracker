@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Vote, Candidate, Department } from '../types';
 import { CANDIDATE_LIST, DEPARTMENT_LIST } from '../constants';
@@ -42,8 +43,8 @@ export const VoteModal: React.FC<VoteModalProps> = ({ isOpen, onClose, onSave, o
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-slate-800 border border-slate-600 rounded-lg shadow-2xl w-full max-w-md animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-slate-800 border border-slate-600 rounded-lg shadow-2xl w-full max-w-md animate-in fade-in zoom-in duration-200 my-auto">
         <div className="flex justify-between items-center p-6 border-b border-slate-700">
           <h3 className="text-xl font-bold text-white">
             {editingVote ? 'Edit Vote' : 'Record New Vote'}
@@ -60,7 +61,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({ isOpen, onClose, onSave, o
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-teal-500"
+              className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-3 md:py-2 text-white focus:outline-none focus:border-teal-500 text-base"
               placeholder="Enter full name"
               required
             />
@@ -71,7 +72,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({ isOpen, onClose, onSave, o
             <select
               value={dept}
               onChange={(e) => setDept(e.target.value as Department)}
-              className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-teal-500"
+              className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-3 md:py-2 text-white focus:outline-none focus:border-teal-500 text-base"
             >
               {DEPARTMENT_LIST.map(d => (
                 <option key={d} value={d}>{d}</option>
@@ -84,7 +85,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({ isOpen, onClose, onSave, o
             <select
               value={candidate}
               onChange={(e) => setCandidate(e.target.value as Candidate)}
-              className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-teal-500"
+              className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-3 md:py-2 text-white focus:outline-none focus:border-teal-500 text-base"
             >
               {CANDIDATE_LIST.map(c => (
                 <option key={c} value={c}>{c}</option>
@@ -102,21 +103,21 @@ export const VoteModal: React.FC<VoteModalProps> = ({ isOpen, onClose, onSave, o
                        onClose();
                    }
                }}
-               className="flex items-center justify-center px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded font-semibold transition-colors border border-red-500/20"
+               className="flex items-center justify-center px-4 py-3 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded font-semibold transition-colors border border-red-500/20"
              >
-               <Trash2 className="w-4 h-4" />
+               <Trash2 className="w-5 h-5 md:w-4 md:h-4" />
              </button>
             )}
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-slate-700 text-slate-200 rounded hover:bg-slate-600 font-semibold transition-colors"
+              className="flex-1 px-4 py-3 bg-slate-700 text-slate-200 rounded hover:bg-slate-600 font-semibold transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-500 font-semibold transition-colors"
+              className="flex-1 px-4 py-3 bg-teal-600 text-white rounded hover:bg-teal-500 font-semibold transition-colors"
             >
               {editingVote ? 'Update Vote' : 'Submit Vote'}
             </button>

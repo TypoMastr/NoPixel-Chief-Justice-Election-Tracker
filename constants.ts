@@ -1,3 +1,4 @@
+
 import { Candidate, Department, Vote } from "./types";
 
 // Helper to generate IDs for initial data
@@ -24,10 +25,16 @@ export const INITIAL_VOTES: Vote[] = [
   { id: uuid(), voterName: "Yui Ishida", department: Department.DOC, candidate: Candidate.ABSTAINED, timestamp: Date.now() },
 ];
 
-export const CANDIDATE_LIST = [
+// Candidates actually running for office (excluding Abstained)
+export const ACTIVE_CANDIDATES = [
   Candidate.BRITTANY_ANGEL,
   Candidate.NATHANIEL_GREYSON,
-  Candidate.SEAN_DANIELSON,
+  Candidate.SEAN_DANIELSON
+];
+
+// Options available in the dropdown
+export const CANDIDATE_LIST = [
+  ...ACTIVE_CANDIDATES,
   Candidate.ABSTAINED
 ];
 
@@ -43,5 +50,5 @@ export const COLORS = {
   [Candidate.BRITTANY_ANGEL]: "#14b8a6", // Teal-500
   [Candidate.NATHANIEL_GREYSON]: "#3b82f6", // Blue-500
   [Candidate.SEAN_DANIELSON]: "#a855f7", // Purple-500
-  [Candidate.ABSTAINED]: "#ef4444", // Red-500
+  [Candidate.ABSTAINED]: "#64748b", // Slate-500 (Neutral/Grey)
 };
