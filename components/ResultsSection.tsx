@@ -81,7 +81,8 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
       <div className="order-2 lg:order-1">
         <ScrollReveal delay={100}>
             <div className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl">
-                <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-4 md:mb-8 flex items-center gap-3 border-b border-white/5 pb-4">
+                {/* Fixed: Added py-1 to prevent bg-clip-text clipping */}
+                <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-4 md:mb-8 flex items-center gap-3 border-b border-white/5 pb-4 py-1">
                 📊 Candidate Results
                 </h2>
                 {/* Grid-cols-2 on mobile for side-by-side cards */}
@@ -154,7 +155,8 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
       <div className="order-1 lg:order-2">
         <ScrollReveal delay={200}>
             <div ref={chartRef} className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl flex flex-col">
-                <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-2 md:mb-6 flex items-center gap-3 border-b border-white/5 pb-4">
+                {/* Fixed: Added py-1 to prevent bg-clip-text clipping */}
+                <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-2 md:mb-6 flex items-center gap-3 border-b border-white/5 pb-4 py-1">
                 📈 Distribution
                 </h2>
                 <div className="flex-1 min-h-[250px] md:min-h-[400px] flex items-center justify-center relative -ml-4">

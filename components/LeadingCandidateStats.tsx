@@ -100,7 +100,8 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                     <div className="flex items-center gap-4 md:gap-6">
                         <div>
                             <div className="flex items-center gap-2 mb-2">
-                                <span className="bg-yellow-500/10 text-yellow-300 border border-yellow-500/30 px-2 py-0.5 rounded text-[10px] md:text-[11px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.15)] animate-pulse">Current Leader</span>
+                                {/* Fixed: Increased py-0.5 to py-1 to prevent font clipping at bottom */}
+                                <span className="bg-yellow-500/10 text-yellow-300 border border-yellow-500/30 px-2 py-1 rounded text-[10px] md:text-[11px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.15)] animate-pulse">Current Leader</span>
                             </div>
                             {/* Header Name */}
                             <h1 className="text-xl md:text-5xl font-black text-white leading-normal tracking-tight drop-shadow-md flex items-center gap-2 md:gap-4 flex-wrap pb-2">
@@ -111,7 +112,8 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                         className="w-8 h-8 md:w-16 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(20,184,166,0.5)]" 
                                     />
                                 )}
-                                <span className="whitespace-normal bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-slate-400 pr-1">{leader}</span>
+                                {/* Fixed: Added pb-2 and inline-block to prevent bg-clip-text from cutting off descenders (g, y, p, q) */}
+                                <span className="whitespace-normal bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-slate-400 pr-1 pb-2 inline-block">{leader}</span>
                             </h1>
                             
                             <div className="mt-1 flex flex-col gap-1">
