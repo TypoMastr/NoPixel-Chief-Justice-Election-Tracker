@@ -9,7 +9,7 @@ import { VoterGrid } from './components/VoterGrid';
 import { NominationsList } from './components/NominationsList';
 import { VoteModal } from './components/VoteModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
-import { Scale, Plus, Gavel, ExternalLink, Loader2, Lock, LogOut, Radio } from 'lucide-react';
+import { Scale, Plus, Gavel, ExternalLink, Loader2, Lock, LogOut, FileText } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { ScrollReveal } from './components/ScrollReveal';
 import { ParallaxBackground } from './components/ParallaxBackground';
@@ -46,7 +46,6 @@ const App: React.FC = () => {
       }
 
       if (data) {
-        // Ensure timestamp is treated as a number (Supabase int8 might come as string sometimes)
         const parsedVotes: Vote[] = data.map((v: any) => ({
             ...v,
             timestamp: Number(v.timestamp)
@@ -61,10 +60,75 @@ const App: React.FC = () => {
     }
   };
 
+  const handleCopyReport = () => {
+    if (votes.length === 0) {
+      showToast('No votes to generate report.', 'info');
+      return;
+    }
+
+    const candidates = Array.from(new Set(votes.map(v => v.candidate))).sort();
+    const activeCandidates = candidates.filter(c => c !== Candidate.ABSTAINED);
+    const abstainedVotes = votes.filter(v => v.candidate === Candidate.ABSTAINED);
+
+    const isoTimestamp = new Date().toISOString();
+
+    let report = `ELECTION REPORT: CHIEF JUSTICE\n`;
+    report += `REPORT TIMESTAMP (UTC/ISO 8601): ${isoTimestamp}\n`;
+    report += `-----------------------------------------\n\n`;
+    
+    report += `SUMMARY\n`;
+    activeCandidates.forEach(cand => {
+      const count = votes.filter(v => v.candidate === cand).length;
+      report += `- ${cand}: ${count} votes\n`;
+    });
+    report += `- Abstentions: ${abstainedVotes.length}\n`;
+    report += `- Total Turnout: ${votes.length}\n\n`;
+
+    report += `-----------------------------------------\n\n`;
+    report += `DETAILED VOTER LIST\n\n`;
+
+    activeCandidates.forEach(cand => {
+      const candVotes = votes.filter(v => v.candidate === cand);
+      if (candVotes.length > 0) {
+        report += `${(cand as string).toUpperCase()} (${candVotes.length})\n`;
+        
+        const deptsInCand = Array.from(new Set(candVotes.map(v => v.department))).sort();
+        deptsInCand.forEach(dept => {
+          const deptVoters = candVotes
+            .filter(v => v.department === dept)
+            .sort((a, b) => a.voterName.localeCompare(b.voterName));
+          
+          const namesLine = deptVoters.map(v => v.voterName).join(' / ');
+          report += `${dept} (${deptVoters.length}): ${namesLine}\n`;
+        });
+        report += `\n`;
+      }
+    });
+
+    if (abstainedVotes.length > 0) {
+      report += `ABSTENTIONS (${abstainedVotes.length})\n`;
+      const deptsInAbstain = Array.from(new Set(abstainedVotes.map(v => v.department))).sort();
+      deptsInAbstain.forEach(dept => {
+        const deptVoters = abstainedVotes
+          .filter(v => v.department === dept)
+          .sort((a, b) => a.voterName.localeCompare(b.voterName));
+        
+        const namesLine = deptVoters.map(v => v.voterName).join(' / ');
+        report += `${dept} (${deptVoters.length}): ${namesLine}\n`;
+      });
+    }
+
+    navigator.clipboard.writeText(report.trim()).then(() => {
+      showToast('Generate Text Report', 'success');
+    }).catch(err => {
+      console.error('Failed to copy report:', err);
+      showToast('Failed to copy report', 'error');
+    });
+  };
+
   const handleSaveVote = async (voteData: Omit<Vote, 'id' | 'timestamp'>, id?: string) => {
     try {
       if (id) {
-        // Edit existing
         const { error } = await supabase
           .from('votes')
           .update({
@@ -77,7 +141,6 @@ const App: React.FC = () => {
         if (error) throw error;
         showToast('Vote updated successfully', 'success');
       } else {
-        // Add new
         const { error } = await supabase
           .from('votes')
           .insert([{
@@ -90,7 +153,6 @@ const App: React.FC = () => {
         if (error) throw error;
         showToast('New vote recorded successfully', 'success');
       }
-      // Refresh list
       fetchVotes();
     } catch (error) {
       console.error('Error saving vote:', error);
@@ -106,8 +168,6 @@ const App: React.FC = () => {
         .eq('id', id);
 
       if (error) throw error;
-      
-      // Optimistic update
       setVotes(prev => prev.filter(v => v.id !== id));
       showToast('Vote deleted permanently', 'success');
     } catch (error) {
@@ -138,7 +198,6 @@ const App: React.FC = () => {
     setIsVoteModalOpen(true);
   };
 
-  // Derived Stats
   const totalVotes = votes.length;
   const abstentions = votes.filter(v => v.candidate === Candidate.ABSTAINED).length;
   const validVotes = totalVotes - abstentions;
@@ -155,44 +214,52 @@ const App: React.FC = () => {
   }
 
   return (
-    // Compact padding on mobile (p-2) and overflow-x-hidden for smooth animations
     <div className="min-h-screen p-2 md:p-8 text-slate-200 font-sans flex flex-col relative overflow-x-hidden">
       <ParallaxBackground />
       
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-10 w-full flex-grow pb-12 md:pb-0 z-10">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6 w-full flex-grow pb-12 md:pb-0 z-10">
         
         {/* Header */}
         <ScrollReveal>
-            <div className="relative mb-4 md:mb-8 mt-2 md:mt-4">
-                {/* Glow Effect behind header */}
+            <div className="relative mb-4 md:mb-6 mt-2 md:mt-4">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-teal-500/10 rounded-full blur-[80px] pointer-events-none"></div>
 
                 <div className="relative overflow-hidden glass-panel rounded-2xl p-4 md:p-6 text-center shadow-2xl ring-1 ring-white/10 group">
-                    {/* Top Gradient Line */}
                     <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-teal-400 to-transparent opacity-70 shadow-[0_0_15px_rgba(45,212,191,0.5)]"></div>
                     
-                    <div className="flex items-center justify-center relative z-10 gap-3 md:gap-8">
-                            {/* Scale Icon */}
-                            <div className="flex items-center justify-center">
-                                <Scale className="w-6 h-6 md:w-10 md:h-10 text-slate-200" />
-                            </div>
+                    <div className="flex flex-col gap-6">
+                      <div className="flex items-center justify-center relative z-10 gap-3 md:gap-8">
+                              <div className="flex items-center justify-center">
+                                  <Scale className="w-6 h-6 md:w-10 md:h-10 text-slate-200" />
+                              </div>
 
-                            <div className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-4 text-center">
-                                <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 tracking-tighter drop-shadow-xl leading-none">
-                                    CHIEF JUSTICE
-                                </h1>
-                                
-                                <span className="hidden md:block w-2 h-2 rounded-full bg-slate-200/80 shadow-[0_0_10px_rgba(255,255,255,0.3)]"></span>
+                              <div className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-4 text-center">
+                                  <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 tracking-tighter drop-shadow-xl leading-none">
+                                      CHIEF JUSTICE
+                                  </h1>
+                                  
+                                  <span className="hidden md:block w-2 h-2 rounded-full bg-slate-200/80 shadow-[0_0_10px_rgba(255,255,255,0.3)]"></span>
 
-                                <h2 className="text-xs md:text-2xl font-bold tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 drop-shadow-md">
-                                    Election Results
-                                </h2>
-                            </div>
+                                  <h2 className="text-xs md:text-2xl font-bold tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 drop-shadow-md">
+                                      Election Results
+                                  </h2>
+                              </div>
 
-                            {/* Gavel Icon */}
-                            <div className="flex items-center justify-center">
-                                <Gavel className="w-6 h-6 md:w-10 md:h-10 text-slate-200 scale-x-[-1]" />
-                            </div>
+                              <div className="flex items-center justify-center">
+                                  <Gavel className="w-6 h-6 md:w-10 md:h-10 text-slate-200 scale-x-[-1]" />
+                              </div>
+                      </div>
+
+                      {/* Public Global Action: Generate Text Report */}
+                      <div className="flex justify-center">
+                        <button
+                          onClick={handleCopyReport}
+                          className="flex items-center gap-3 px-6 py-3 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-xl transition-all shadow-[0_0_20px_rgba(20,184,166,0.1)] hover:shadow-[0_0_25px_rgba(20,184,166,0.2)] active:scale-95 group"
+                        >
+                          <FileText className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                          <span className="text-xs md:text-sm font-black uppercase tracking-[0.2em]">Generate Text Report</span>
+                        </button>
+                      </div>
                     </div>
                 </div>
             </div>
@@ -239,7 +306,6 @@ const App: React.FC = () => {
         )}
       </div>
 
-      {/* Footer / Admin Login */}
       <footer className="mt-4 md:mt-8 py-4 border-t border-slate-800/50 text-center mb-16 md:mb-0 z-10">
         {isAdmin ? (
              <button 
@@ -260,7 +326,6 @@ const App: React.FC = () => {
         )}
       </footer>
 
-      {/* Floating Action Button - Only Visible to Admin */}
       {isAdmin && (
         <button 
             onClick={openAddModal}
@@ -273,7 +338,6 @@ const App: React.FC = () => {
         </button>
       )}
 
-      {/* Vote Modal */}
       <VoteModal 
         isOpen={isVoteModalOpen} 
         onClose={() => setIsVoteModalOpen(false)}
@@ -282,7 +346,6 @@ const App: React.FC = () => {
         editingVote={editingVote}
       />
 
-      {/* Admin Login Modal */}
       <AdminLoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}

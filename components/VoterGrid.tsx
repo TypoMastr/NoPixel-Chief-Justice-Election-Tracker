@@ -11,7 +11,7 @@ interface VoterGridProps {
 }
 
 export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) => {
-  const groupedVotes = votes.reduce((acc, vote) => {
+  const groupedByDept = votes.reduce((acc, vote) => {
     if (!acc[vote.department]) {
       acc[vote.department] = [];
     }
@@ -19,7 +19,7 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
     return acc;
   }, {} as Record<string, Vote[]>);
 
-  const sortedDepartments = Object.keys(groupedVotes).sort();
+  const sortedDepartments = Object.keys(groupedByDept).sort();
 
   const getDeptTheme = (dept: string) => {
     const d = dept.toUpperCase();
@@ -73,7 +73,7 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
 
   return (
     <div className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl mb-4">
-      <div className="flex justify-between items-center mb-6 md:mb-10 border-b border-white/5 pb-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 border-b border-white/5 pb-4 gap-4">
         <div className="flex items-center gap-4">
           <h2 className="text-lg md:text-2xl font-bold text-teal-400 flex items-center gap-3">
             👥 Voters List
@@ -82,17 +82,20 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
             {votes.length} Total
           </span>
         </div>
-        {isAdmin && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-teal-500/10 border border-teal-500/20 rounded-lg animate-pulse">
-            <ShieldCheck className="w-4 h-4 text-teal-400" />
-            <span className="text-[10px] font-black text-teal-400 uppercase tracking-widest">Modo Edição Ativo</span>
-          </div>
-        )}
+        
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          {isAdmin && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-teal-500/10 border border-teal-500/20 rounded-lg animate-pulse hidden sm:flex">
+              <ShieldCheck className="w-4 h-4 text-teal-400" />
+              <span className="text-[10px] font-black text-teal-400 uppercase tracking-widest">Edit Mode Active</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-6 md:space-y-12">
         {sortedDepartments.map((dept) => {
-          const deptVotes = groupedVotes[dept].sort((a, b) => a.voterName.localeCompare(b.voterName));
+          const deptVotes = groupedByDept[dept].sort((a, b) => a.voterName.localeCompare(b.voterName));
           const theme = getDeptTheme(dept);
 
           return (
@@ -102,7 +105,7 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
                   <h3 className={`text-lg md:text-3xl font-black uppercase tracking-[0.15em] ${theme.title}`}>{dept}</h3>
                   <div className={`h-px flex-1 ${theme.divider}`}></div>
                   <span className={`${theme.counter} text-[10px] md:text-xs font-black uppercase tracking-widest bg-black/20 px-3 py-1 rounded-full`}>
-                    {deptVotes.length} Votos
+                    {deptVotes.length} Votes
                   </span>
                 </div>
                 
@@ -149,7 +152,7 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
 
         {votes.length === 0 && (
           <div className="text-center py-20 bg-slate-800/20 border border-white/5 rounded-2xl">
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">Nenhum registro encontrado</p>
+            <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">No records found</p>
           </div>
         )}
       </div>
