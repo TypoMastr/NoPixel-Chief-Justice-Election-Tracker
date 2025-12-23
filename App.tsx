@@ -128,7 +128,7 @@ const App: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-teal-500">
+      <div className="min-h-screen flex flex-col items-center justify-center text-teal-500">
         <Loader2 className="w-12 h-12 animate-spin mb-4" />
         <p className="text-slate-300 font-medium">Loading election data...</p>
       </div>
@@ -137,15 +137,18 @@ const App: React.FC = () => {
 
   return (
     // Compact padding on mobile (p-2)
-    <div className="min-h-screen bg-slate-900 p-2 md:p-8 text-slate-200 font-sans flex flex-col">
+    <div className="min-h-screen p-2 md:p-8 text-slate-200 font-sans flex flex-col animate-fade-in-up">
       <div className="max-w-7xl mx-auto space-y-4 md:space-y-10 w-full flex-grow pb-24 md:pb-0">
         
         {/* Header */}
-        <div className="relative overflow-hidden bg-slate-800 border border-slate-600 rounded-2xl p-4 md:p-8 text-center shadow-2xl ring-1 ring-white/5">
-           <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500 opacity-90"></div>
-          <h1 className="text-lg sm:text-xl md:text-5xl font-black text-white tracking-tight flex flex-row items-center justify-center gap-2 md:gap-4 drop-shadow-lg leading-tight whitespace-nowrap">
-             <Scale className="w-5 h-5 md:w-12 md:h-12 text-teal-400" />
-             <span>Chief Justice Election</span>
+        <div className="relative overflow-hidden glass-panel rounded-2xl p-4 md:p-8 text-center shadow-2xl ring-1 ring-white/5 group">
+           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500 opacity-90"></div>
+           {/* Header Shine Effect */}
+           <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-10 animate-shimmer" style={{ animationDuration: '3s' }} />
+
+          <h1 className="text-lg sm:text-xl md:text-5xl font-black text-white tracking-tight flex flex-row items-center justify-center gap-2 md:gap-4 drop-shadow-lg leading-tight whitespace-nowrap z-10 relative">
+             <Scale className="w-5 h-5 md:w-12 md:h-12 text-teal-400 animate-pulse" />
+             <span className="bg-clip-text text-transparent bg-gradient-to-br from-white to-slate-400">Chief Justice Election</span>
              <Gavel className="w-5 h-5 md:w-12 md:h-12 text-blue-500 transform -scale-x-100" />
           </h1>
         </div>
@@ -177,9 +180,9 @@ const App: React.FC = () => {
                   href="discord://discord.com/channels/85441497989664768/1032678228512493619/1452750119471681699"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] text-white px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-[#5865F2]/25 hover:-translate-y-1 border border-[#5865F2]/50 text-sm md:text-base w-full md:w-auto justify-center"
+                  className="flex items-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] text-white px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-[#5865F2]/25 hover:-translate-y-1 border border-[#5865F2]/50 text-sm md:text-base w-full md:w-auto justify-center group"
               >
-                  <ExternalLink className="w-5 h-5" />
+                  <ExternalLink className="w-5 h-5 group-hover:rotate-45 transition-transform" />
                   <span>View Latest Updates on Discord</span>
               </a>
           </div>
@@ -187,7 +190,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Footer / Admin Login */}
-      <footer className="mt-8 md:mt-20 py-6 border-t border-slate-800 text-center mb-16 md:mb-0">
+      <footer className="mt-8 md:mt-20 py-6 border-t border-slate-800/50 text-center mb-16 md:mb-0">
         {isAdmin ? (
              <button 
                 onClick={() => setIsAdmin(false)}
@@ -211,11 +214,12 @@ const App: React.FC = () => {
       {isAdmin && (
         <button 
             onClick={openAddModal}
-            className="fixed bottom-6 right-6 md:bottom-8 md:right-8 bg-teal-500 hover:bg-teal-400 text-slate-950 p-4 rounded-full shadow-[0_0_30px_rgba(20,184,166,0.3)] hover:shadow-[0_0_40px_rgba(20,184,166,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center z-40 group border-4 border-slate-900"
+            className="fixed bottom-6 right-6 md:bottom-8 md:right-8 bg-teal-500 hover:bg-teal-400 text-slate-950 p-4 rounded-full shadow-[0_0_30px_rgba(20,184,166,0.3)] hover:shadow-[0_0_40px_rgba(20,184,166,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center z-40 group border-4 border-slate-900 animate-fade-in-up"
             title="Record New Vote"
             style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
         >
-            <Plus className="w-6 h-6 md:w-8 md:h-8 stroke-[3] group-hover:rotate-90 transition-transform duration-300" />
+             <span className="absolute inset-0 rounded-full animate-ping bg-teal-500 opacity-20"></span>
+            <Plus className="w-6 h-6 md:w-8 md:h-8 stroke-[3] group-hover:rotate-90 transition-transform duration-300 relative z-10" />
         </button>
       )}
 

@@ -39,11 +39,12 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
         fill="white" 
         textAnchor={x > cx ? 'start' : 'end'} 
         dominantBaseline="central"
-        className="text-[10px] md:text-xs font-bold"
+        className="text-[10px] md:text-xs font-bold animate-fade-in-up"
         style={{ 
             fontWeight: '700', 
             fill: '#f8fafc', 
-            filter: 'drop-shadow(0px 2px 2px rgba(0,0,0,0.9))' 
+            filter: 'drop-shadow(0px 2px 2px rgba(0,0,0,0.9))',
+            animationDelay: '0.5s'
         }}
       >
         {`${(percent * 100).toFixed(0)}%`}
@@ -54,44 +55,51 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 mb-4 md:mb-8">
       {/* List Column */}
-      <div className="bg-slate-800 border border-slate-600 rounded-2xl p-4 md:p-8 shadow-xl order-2 lg:order-1">
-        <h2 className="text-lg md:text-2xl font-bold text-teal-400 mb-4 md:mb-8 flex items-center gap-3 border-b border-slate-700 pb-4">
+      <div className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl order-2 lg:order-1 animate-fade-in-up delay-200">
+        <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-4 md:mb-8 flex items-center gap-3 border-b border-white/5 pb-4">
           📊 Candidate Results
         </h2>
         {/* Grid-cols-2 on mobile for side-by-side cards */}
         <div className="grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-5">
-          {data.map((item) => {
+          {data.map((item, idx) => {
             // Percent of TOTAL votes (including abstentions)
             const percentage = totalVotes > 0 ? ((item.value / totalVotes) * 100).toFixed(1) : "0.0";
             return (
-              <div key={item.name} className="group bg-slate-900 p-3 md:p-5 rounded-xl border border-slate-600 hover:border-teal-500/50 transition-all duration-300 relative overflow-hidden shadow-md hover:shadow-lg">
-                {/* Background bar */}
+              <div 
+                key={item.name} 
+                className="group bg-slate-800/80 p-3 md:p-5 rounded-xl border border-teal-500/50 transition-all duration-300 relative overflow-hidden shadow-lg"
+                style={{ animationDelay: `${idx * 100}ms` }}
+              >
+                {/* Background bar animation - Permanent high opacity */}
                  <div 
-                    className="absolute top-0 bottom-0 left-0 opacity-[0.15] transition-all duration-500 group-hover:opacity-[0.25]"
+                    className="absolute top-0 bottom-0 left-0 opacity-[0.25] transition-all duration-1000 ease-out"
                     style={{ 
                         width: `${percentage}%`, 
-                        backgroundColor: COLORS[item.name as Candidate] 
+                        backgroundColor: COLORS[item.name as Candidate],
+                        transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)'
                     }}
                 />
                 
                 <div className="relative z-10">
                     <div className="flex flex-col md:flex-row justify-between md:items-center mb-0 md:mb-4 gap-2 md:gap-0">
                         <div className="flex items-center gap-2 md:gap-4">
-                             <div className="w-1 h-6 md:w-1.5 md:h-10 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)] flex-shrink-0" style={{ backgroundColor: COLORS[item.name as Candidate] }}></div>
-                             <h3 className="text-white font-bold text-xs md:text-xl tracking-tight leading-snug pr-2 whitespace-normal break-words">{item.name}</h3>
+                             <div className="w-1 h-6 md:w-1.5 md:h-10 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)] flex-shrink-0 transition-all scale-y-110" style={{ backgroundColor: COLORS[item.name as Candidate] }}></div>
+                             {/* Permanent highlighted text color */}
+                             <h3 className="font-bold text-xs md:text-xl tracking-tight leading-snug pr-2 whitespace-normal break-words text-teal-50 transition-colors">{item.name}</h3>
                         </div>
                         <div className="flex flex-col md:flex-row items-end md:items-center gap-1 md:gap-3 pl-3 md:pl-0 self-end md:self-auto">
                             <span className={`text-2xl md:text-4xl font-black tracking-tighter tabular-nums ${item.value > 0 ? 'text-white' : 'text-slate-600'}`}>
                             {item.value}
                             </span>
-                            <div className="text-[10px] md:text-xs font-bold text-slate-300 bg-slate-800 border border-slate-600 rounded px-1.5 py-0.5 md:px-2 md:py-1 min-w-[40px] md:min-w-[50px] text-center shadow-sm">
+                            <div className="text-[10px] md:text-xs font-bold text-slate-300 bg-slate-800/80 border border-slate-600/50 rounded px-1.5 py-0.5 md:px-2 md:py-1 min-w-[40px] md:min-w-[50px] text-center shadow-sm backdrop-blur-sm">
                                 {percentage}%
                             </div>
                         </div>
                     </div>
                     
                     {item.value > 0 && (
-                        <div className="mt-2 pt-2 md:pt-3 border-t border-slate-700/50 hidden md:block">
+                        /* Permanently visible (opacity-100) instead of hover */
+                        <div className="mt-2 pt-2 md:pt-3 border-t border-white/5 hidden md:block opacity-100 transition-opacity duration-300">
                             <span className="text-slate-400 uppercase text-[10px] tracking-widest block mb-2 font-bold flex items-center gap-2">
                                 <span className="w-1 h-1 bg-slate-400 rounded-full"></span> Recorded Voters
                             </span> 
@@ -107,15 +115,15 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
         </div>
         
         {/* Abstained Small Summary */}
-        <div className="mt-4 p-3 bg-slate-800 border border-slate-700 rounded-lg flex justify-between items-center">
+        <div className="mt-4 p-3 bg-slate-900/30 border border-white/5 rounded-lg flex justify-between items-center hover:bg-slate-800/50 transition-colors">
             <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Abstained</span>
             <span className="text-slate-200 font-mono font-bold">{abstainedVotes}</span>
         </div>
       </div>
 
       {/* Chart Column */}
-      <div className="bg-slate-800 border border-slate-600 rounded-2xl p-4 md:p-8 shadow-xl flex flex-col order-1 lg:order-2">
-        <h2 className="text-lg md:text-2xl font-bold text-teal-400 mb-2 md:mb-6 flex items-center gap-3 border-b border-slate-700 pb-4">
+      <div className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl flex flex-col order-1 lg:order-2 animate-fade-in-up delay-300">
+        <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-2 md:mb-6 flex items-center gap-3 border-b border-white/5 pb-4">
           📈 Distribution
         </h2>
         <div className="flex-1 min-h-[250px] md:min-h-[400px] flex items-center justify-center relative -ml-4">
@@ -132,6 +140,9 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                 stroke="none"
                 label={renderCustomizedLabel}
                 labelLine={true}
+                isAnimationActive={true}
+                animationDuration={1500}
+                animationEasing="ease-out"
               >
                 {chartData.filter(d => d.value > 0).map((entry, index) => (
                   <Cell 
@@ -143,14 +154,15 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
               </Pie>
               <Tooltip 
                 contentStyle={{ 
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)', 
-                    borderColor: '#475569', 
-                    borderRadius: '8px', 
+                    backgroundColor: 'rgba(15, 23, 42, 0.90)', 
+                    borderColor: 'rgba(255,255,255,0.1)', 
+                    borderRadius: '12px', 
                     color: '#fff',
-                    backdropFilter: 'blur(8px)',
+                    backdropFilter: 'blur(12px)',
                     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
                 }}
                 itemStyle={{ color: '#fff', fontWeight: 600, fontSize: '14px' }}
+                cursor={{ fill: 'transparent' }}
               />
               <Legend 
                 layout="horizontal" 
