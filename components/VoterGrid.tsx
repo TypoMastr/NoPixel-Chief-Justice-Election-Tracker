@@ -23,41 +23,75 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
 
   const getDeptTheme = (dept: string) => {
     const d = dept.toUpperCase();
+    
+    // BCSO Theme: Tan/Brown
     if (d === 'BSCO' || d === 'BCSO') {
       return {
-        cardWrapper: "bg-gradient-to-br from-[#423a26] to-[#262115] border-[#7d7150]/60 shadow-[0_4px_20px_rgba(66,58,38,0.3)]",
+        cardWrapper: "bg-gradient-to-br from-[#423a26] to-[#262115] border-[#7d7150]/60 shadow-[0_10px_40px_rgba(0,0,0,0.4)]",
         title: "text-[#e8e3d3]",
         divider: "bg-[#7d7150]/40",
         counter: "text-[#b0a586]",
-        itemCard: "bg-[#2b2518]/60 border-[#7d7150]/30 hover:border-teal-500/50",
+        itemCard: "bg-[#2b2518]/80 border-[#7d7150]/30 hover:border-teal-500/50",
         itemName: "text-white",
         editIcon: "text-teal-400"
       };
     } 
+    
+    // LSPD Theme: Police Blue
     if (d === 'LSPD') {
       return {
-        cardWrapper: "bg-gradient-to-br from-[#0f172a] to-[#1e3a8a] border-blue-800/60 shadow-[0_4px_20px_rgba(30,58,138,0.3)]",
+        cardWrapper: "bg-gradient-to-br from-[#0f172a] to-[#1e3a8a] border-blue-800/60 shadow-[0_10px_40px_rgba(0,0,0,0.4)]",
         title: "text-blue-100",
         divider: "bg-blue-700/40",
         counter: "text-blue-200",
-        itemCard: "bg-[#020617]/50 border-blue-500/30 hover:border-teal-400/50",
+        itemCard: "bg-[#020617]/70 border-blue-500/30 hover:border-teal-400/50",
         itemName: "text-white",
         editIcon: "text-teal-300"
       };
     }
+    
+    // SASM Theme: Slate/Grey
     if (d === 'SASM') {
       return {
-        cardWrapper: "bg-gradient-to-br from-[#64748b] to-[#475569] border-slate-400/50 shadow-[0_4px_20px_rgba(100,116,139,0.25)]",
+        cardWrapper: "bg-gradient-to-br from-[#64748b] to-[#475569] border-slate-400/50 shadow-[0_10px_40px_rgba(0,0,0,0.4)]",
         title: "text-white", 
         divider: "bg-white/20",
         counter: "text-slate-200",
-        itemCard: "bg-[#0f172a]/80 border-white/20 hover:border-teal-400/50",
+        itemCard: "bg-[#0f172a]/90 border-white/20 hover:border-teal-400/50",
         itemName: "text-white", 
         editIcon: "text-teal-300"
       };
     }
+
+    // DOC Theme: Deepest Neutro (Slate 950) - Máximo contraste com o fundo
+    if (d === 'DOC') {
+      return {
+        cardWrapper: "bg-slate-950/98 border-slate-800 shadow-[0_20px_60px_rgba(0,0,0,0.8)] ring-1 ring-white/5",
+        title: "text-slate-200",
+        divider: "bg-slate-700/30",
+        counter: "text-slate-500",
+        itemCard: "bg-slate-900/95 border-slate-800/60 hover:border-white/40",
+        itemName: "text-white",
+        editIcon: "text-slate-400"
+      };
+    }
+
+    // DOJ Theme: Medium Neutro (Slate 900) - Ligeiramente mais claro que DOC
+    if (d === 'DOJ') {
+      return {
+        cardWrapper: "bg-slate-900/90 border-slate-700 shadow-[0_20px_50px_rgba(0,0,0,0.6)] ring-1 ring-white/5",
+        title: "text-white",
+        divider: "bg-slate-600/30",
+        counter: "text-slate-400",
+        itemCard: "bg-slate-800/80 border-slate-700/60 hover:border-white/50",
+        itemName: "text-white",
+        editIcon: "text-slate-300"
+      };
+    }
+
+    // Default Theme: Standard Slate
     return {
-      cardWrapper: "bg-slate-900/30 border-white/5 shadow-md",
+      cardWrapper: "bg-slate-900/90 border-white/10 shadow-xl",
       title: "text-slate-300",
       divider: "bg-white/5",
       counter: "text-slate-400",
@@ -94,11 +128,11 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
 
           return (
             <ScrollReveal key={dept} delay={100}>
-              <div className={`${theme.cardWrapper} p-5 md:p-8 rounded-2xl border relative overflow-hidden group/dept transition-all duration-500`}>
+              <div className={`${theme.cardWrapper} p-5 md:p-8 rounded-2xl border-2 relative overflow-hidden group/dept transition-all duration-500`}>
                 <div className="flex items-center gap-4 mb-6 relative z-10">
                   <h3 className={`text-xl md:text-3xl font-black uppercase tracking-[0.15em] ${theme.title}`}>{dept}</h3>
                   <div className={`h-[2px] flex-1 ${theme.divider}`}></div>
-                  <span className={`${theme.counter} text-xs font-black uppercase tracking-widest bg-black/30 px-3 py-1 rounded-full tabular-nums border border-white/5`}>
+                  <span className={`${theme.counter} text-xs font-black uppercase tracking-widest bg-black/40 px-3 py-1 rounded-full tabular-nums border border-white/5`}>
                     {deptVotes.length} Votes
                   </span>
                 </div>
@@ -126,7 +160,7 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
                             <div 
                               className="px-3 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest w-full text-center border shadow-inner transition-all backdrop-blur-md"
                               style={{ 
-                                backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                                backgroundColor: 'rgba(15, 23, 42, 0.7)',
                                 color: COLORS[vote.candidate],
                                 borderColor: `${COLORS[vote.candidate]}40`
                               }}

@@ -13,15 +13,29 @@ export const ParallaxBackground: React.FC = () => {
         window.requestAnimationFrame(() => {
           const scrolled = window.scrollY;
           
-          // Direct DOM manipulation avoids React render cycle overhead
+          // Efeito de Parallax Profundo: Movimentação em múltiplos eixos e escala
+          // Blob 1: Fundo Profundo (Movimento mais lento + leve horizontal)
           if (blob1Ref.current) {
-            blob1Ref.current.style.transform = `translate3d(0, ${scrolled * 0.15}px, 0)`;
+            const y = scrolled * 0.2;
+            const x = scrolled * 0.05;
+            const s = 1 + (scrolled * 0.00005);
+            blob1Ref.current.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${s})`;
           }
+          
+          // Blob 2: Plano Médio (Movimento mais rápido e oposto)
           if (blob2Ref.current) {
-            blob2Ref.current.style.transform = `translate3d(0, ${scrolled * 0.25}px, 0)`;
+            const y = scrolled * 0.4;
+            const x = scrolled * -0.05;
+            const s = 1 + (scrolled * 0.0001);
+            blob2Ref.current.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${s})`;
           }
+          
+          // Blob 3: Base (Movimento negativo para contra-balanço)
           if (blob3Ref.current) {
-            blob3Ref.current.style.transform = `translate3d(0, ${-scrolled * 0.1}px, 0)`;
+            const y = scrolled * -0.25;
+            const x = scrolled * 0.08;
+            const s = 1 - (scrolled * 0.00005);
+            blob3Ref.current.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${Math.max(0.7, s)})`;
           }
           
           ticking = false;
@@ -32,8 +46,6 @@ export const ParallaxBackground: React.FC = () => {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Initial position
     handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
@@ -41,38 +53,30 @@ export const ParallaxBackground: React.FC = () => {
 
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1] transform-gpu">
-      {/* 
-          Deep Background Overlay 
-          Fixed: Changed from solid bg-[#0f172a] to a semi-transparent overlay 
-          to allow the body's radial gradients (the red/magenta tones) to show through.
-      */}
-      <div className="absolute inset-0 bg-slate-950/20 backdrop-brightness-[0.8]"></div>
+      {/* Camada de escurecimento para garantir legibilidade */}
+      <div className="absolute inset-0 bg-slate-950/30 backdrop-brightness-[0.8]"></div>
       
-      {/* Floating Blobs with Parallax */}
-      
-      {/* Teal Blob - Moves slower */}
+      {/* Blobs Dinâmicos */}
       <div 
         ref={blob1Ref}
-        className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-teal-600/10 rounded-full blur-[100px]"
+        className="absolute top-[-15%] left-[-10%] w-[800px] h-[800px] bg-teal-600/10 rounded-full blur-[120px] will-change-transform"
         style={{ transform: 'translate3d(0,0,0)' }}
       />
 
-      {/* Blue/Red Blend Blob - Moves medium speed */}
       <div 
         ref={blob2Ref}
-        className="absolute top-[10%] right-[-10%] w-[700px] h-[700px] bg-blue-600/10 rounded-full blur-[120px]"
+        className="absolute top-[20%] right-[-15%] w-[900px] h-[900px] bg-blue-600/10 rounded-full blur-[140px] will-change-transform"
         style={{ transform: 'translate3d(0,0,0)' }}
       />
 
-      {/* Purple/Magenta Blob - Enhanced to match the reddish theme */}
       <div 
         ref={blob3Ref}
-        className="absolute bottom-[-10%] left-[10%] w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[90px]"
+        className="absolute bottom-[-10%] left-[5%] w-[700px] h-[700px] bg-purple-500/10 rounded-full blur-[110px] will-change-transform"
         style={{ transform: 'translate3d(0,0,0)' }}
       />
 
-      {/* Subtle Noise Texture Overlay - Static */}
-      <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+      {/* Ruído de Textura Estático */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
     </div>
   );
 };
