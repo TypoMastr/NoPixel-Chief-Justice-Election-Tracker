@@ -9,13 +9,14 @@ import { VoterGrid } from './components/VoterGrid';
 import { VoteModal } from './components/VoteModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { supabase } from './lib/supabaseClient';
-import { Scale, Plus, Gavel, ExternalLink, ShieldCheck, LogOut, Lock } from 'lucide-react';
+import { Scale, Plus, Gavel, ExternalLink, ShieldCheck, LogOut, Lock, AlertCircle } from 'lucide-react';
 
 const ADMIN_PASS = 'tarantino1994';
 
 const App: React.FC = () => {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
@@ -32,15 +33,40 @@ const App: React.FC = () => {
 
   const fetchVotes = async () => {
     try {
+      setLoading(true);
+      setErrorMsg(null);
+      
       const { data, error } = await supabase
         .from('votes')
         .select('*')
         .order('timestamp', { ascending: false });
 
       if (error) throw error;
-      if (data) setVotes(data as Vote[]);
-    } catch (error) {
+      
+      if (data) {
+        // Normalize data to handle potential case-sensitivity issues from DB (voterName vs votername)
+        const normalizedVotes: Vote[] = data.map((row: any) => ({
+          id: row.id,
+          voterName: row.voterName || row.votername || row.voter_name || 'Unknown',
+          department: row.department,
+          candidate: row.candidate,
+          timestamp: row.timestamp || (row.created_at ? new Date(row.created_at).getTime() : Date.now())
+        }));
+        setVotes(normalizedVotes);
+      }
+    } catch (error: any) {
       console.error('Error fetching votes:', error);
+      // Ensure we extract a readable message
+      const message = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+      
+      let friendlyMessage = message;
+      if (message.includes("relation") && message.includes("does not exist")) {
+        friendlyMessage = "Table 'votes' not found. Please create the table in Supabase.";
+      } else if (message.includes("Failed to fetch")) {
+        friendlyMessage = "Connection failed. Check your Supabase URL and internet connection.";
+      }
+      
+      setErrorMsg(friendlyMessage);
     } finally {
       setLoading(false);
     }
@@ -63,15 +89,17 @@ const App: React.FC = () => {
 
   const handleSaveVote = async (voteData: Omit<Vote, 'id' | 'timestamp'>, id?: string) => {
     try {
+      const payload = {
+        voterName: voteData.voterName, // Ensure these match your DB column names (or use snake_case if your DB uses it)
+        department: voteData.department,
+        candidate: voteData.candidate
+      };
+
       if (id) {
         // Edit existing in Supabase
         const { error } = await supabase
           .from('votes')
-          .update({
-            voterName: voteData.voterName,
-            department: voteData.department,
-            candidate: voteData.candidate
-          })
+          .update(payload)
           .eq('id', id);
 
         if (error) throw error;
@@ -80,7 +108,7 @@ const App: React.FC = () => {
         const { error } = await supabase
           .from('votes')
           .insert([{
-            ...voteData,
+            ...payload,
             timestamp: Date.now()
           }]);
 
@@ -88,9 +116,10 @@ const App: React.FC = () => {
       }
       // Refresh local state
       fetchVotes();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving vote:', error);
-      alert('Failed to save vote. Check console.');
+      const message = error?.message || "Unknown error";
+      alert(`Failed to save vote: ${message}`);
     }
   };
 
@@ -103,9 +132,9 @@ const App: React.FC = () => {
 
       if (error) throw error;
       fetchVotes();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting vote:', error);
-      alert('Failed to delete vote.');
+      alert(`Failed to delete vote: ${error?.message || "Unknown error"}`);
     }
   };
 
@@ -139,10 +168,24 @@ const App: React.FC = () => {
           </h1>
         </div>
 
-        {/* Loading State */}
+        {/* Loading / Error / Content State */}
         {loading ? (
            <div className="flex justify-center items-center py-20">
              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-400"></div>
+           </div>
+        ) : errorMsg ? (
+           <div className="bg-red-500/10 border border-red-500/50 rounded-2xl p-8 text-center animate-in fade-in">
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-white mb-2">Connection Error</h2>
+              <p className="text-red-200 font-mono text-sm break-all max-w-2xl mx-auto">{errorMsg}</p>
+              <div className="mt-6 text-slate-400 text-sm">
+                  <p className="mb-2">Setup Checklist:</p>
+                  <ul className="list-disc list-inside text-left max-w-md mx-auto space-y-1">
+                      <li>Check <strong>VITE_SUPABASE_URL</strong> in environment variables.</li>
+                      <li>Check <strong>VITE_SUPABASE_ANON_KEY</strong> in environment variables.</li>
+                      <li>Ensure table <strong>votes</strong> exists with columns: <code>id, voterName, department, candidate, timestamp</code>.</li>
+                  </ul>
+              </div>
            </div>
         ) : (
           <>
