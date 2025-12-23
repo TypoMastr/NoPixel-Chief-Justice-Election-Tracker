@@ -9,6 +9,7 @@ import { VoterGrid } from './components/VoterGrid';
 import { NominationsList } from './components/NominationsList';
 import { VoteModal } from './components/VoteModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
+import { ReportModal } from './components/ReportModal';
 import { Scale, Plus, Gavel, ExternalLink, Loader2, Lock, LogOut, FileText } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { ScrollReveal } from './components/ScrollReveal';
@@ -23,6 +24,8 @@ const App: React.FC = () => {
   // Modal States
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [currentReport, setCurrentReport] = useState('');
   
   // Admin State
   const [isAdmin, setIsAdmin] = useState(false);
@@ -60,7 +63,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleCopyReport = () => {
+  const handleGenerateReport = () => {
     if (votes.length === 0) {
       showToast('No votes to generate report.', 'info');
       return;
@@ -118,12 +121,18 @@ const App: React.FC = () => {
       });
     }
 
-    navigator.clipboard.writeText(report.trim()).then(() => {
-      showToast('Generate Text Report', 'success');
+    const finalReportText = report.trim();
+    setCurrentReport(finalReportText);
+    
+    // Auto-copy to clipboard
+    navigator.clipboard.writeText(finalReportText).then(() => {
+      showToast('Report copied to clipboard', 'success');
     }).catch(err => {
       console.error('Failed to copy report:', err);
-      showToast('Failed to copy report', 'error');
     });
+
+    // Open Modal
+    setIsReportModalOpen(true);
   };
 
   const handleSaveVote = async (voteData: Omit<Vote, 'id' | 'timestamp'>, id?: string) => {
@@ -253,11 +262,11 @@ const App: React.FC = () => {
                       {/* Public Global Action: Generate Text Report */}
                       <div className="flex justify-center">
                         <button
-                          onClick={handleCopyReport}
+                          onClick={handleGenerateReport}
                           className="flex items-center gap-3 px-6 py-3 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-xl transition-all shadow-[0_0_20px_rgba(20,184,166,0.1)] hover:shadow-[0_0_25px_rgba(20,184,166,0.2)] active:scale-95 group"
                         >
                           <FileText className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          <span className="text-xs md:text-sm font-black uppercase tracking-[0.2em]">Generate Text Report</span>
+                          <span className="text-xs md:text-sm font-black uppercase tracking-[0.2em]">View & Copy Report</span>
                         </button>
                       </div>
                     </div>
@@ -350,6 +359,12 @@ const App: React.FC = () => {
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         onLogin={handleLogin}
+      />
+
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        reportText={currentReport}
       />
     </div>
   );
