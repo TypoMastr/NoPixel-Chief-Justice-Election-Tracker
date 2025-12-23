@@ -103,7 +103,7 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
           const theme = getDeptTheme(dept);
 
           return (
-            <ScrollReveal key={dept} delay={deptIndex * 100}>
+            <ScrollReveal key={dept} delay={100}>
                 <div className={`${theme.cardWrapper} p-3 md:p-6 rounded-xl border relative overflow-hidden`}>
                     {/* Decorative element */}
                     {theme.decorationColor !== 'hidden' && (
@@ -121,7 +121,7 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
                         {deptVotes.map((vote, vIndex) => (
                         <ScrollReveal 
                           key={vote.id} 
-                          delay={(vIndex % 8) * 50} // Stagger effect for grid items
+                          delay={200 + (vIndex % 8) * 50} // Added base delay to wait for parent, then stagger
                           width="100%"
                         >
                             <div 

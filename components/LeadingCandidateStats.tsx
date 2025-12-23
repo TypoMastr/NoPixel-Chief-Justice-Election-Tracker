@@ -10,6 +10,43 @@ interface LeadingCandidateStatsProps {
   votes: Vote[];
 }
 
+// Custom label component to handle the fade-in animation
+const CustomBarLabel = (props: any) => {
+  const { x, y, width, height, value } = props;
+  
+  return (
+    <g>
+      {/* Define the keyframes locally for this SVG context */}
+      <defs>
+        <style>
+          {`
+            @keyframes fadeInRight {
+              from { opacity: 0; transform: translateX(-10px); }
+              to { opacity: 1; transform: translateX(0); }
+            }
+          `}
+        </style>
+      </defs>
+      <text
+        x={x + width + 8} // Position: end of bar + padding
+        y={y + height / 2 + 1} // Vertically centered
+        fill="#fff"
+        textAnchor="start"
+        dominantBaseline="middle"
+        style={{
+          fontSize: '12px',
+          fontWeight: 'bold',
+          opacity: 0, // Start invisible
+          animation: 'fadeInRight 0.5s ease-out forwards',
+          animationDelay: '100ms' // Starts appearing almost immediately
+        }}
+      >
+        {value}
+      </text>
+    </g>
+  );
+};
+
 export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ votes }) => {
   const [chartVisible, setChartVisible] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
@@ -216,13 +253,13 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                     barSize={24} 
                                     background={{ fill: 'rgba(30, 41, 59, 0.5)', radius: [0, 4, 4, 0] as any }}
                                     isAnimationActive={true}
-                                    animationDuration={1500}
+                                    animationDuration={1000}
                                     animationEasing="ease-out"
                                 >
                                     {breakdownData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={leaderColor} />
                                     ))}
-                                    <LabelList dataKey="votes" position="right" fill="#fff" fontSize={12} fontWeight="bold" />
+                                    <LabelList dataKey="votes" content={<CustomBarLabel />} />
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
