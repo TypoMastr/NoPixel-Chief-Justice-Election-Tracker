@@ -68,7 +68,12 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
     : 0;
 
   const breakdownData = DEPARTMENT_LIST.map(dept => {
-    const leaderCountInDept = leaderVotes.filter(v => v.department === dept).length;
+    // Get the specific votes for the leader in this department
+    const votesForLeaderInDept = leaderVotes.filter(v => v.department === dept);
+    const leaderCountInDept = votesForLeaderInDept.length;
+    
+    // Create a sorted list of names
+    const voterNames = votesForLeaderInDept.map(v => v.voterName).sort();
     
     // Count ALL votes in department (including abstentions) for the total/denominator
     const totalVotesInDept = votes.filter(v => v.department === dept).length;
@@ -82,11 +87,44 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
       name: dept,
       votes: leaderCountInDept,
       totalDept: totalVotesInDept,
-      percent: dominationPercent
+      percent: dominationPercent,
+      voterList: voterNames // Pass the list of names to the data object
     };
   });
 
   const leaderColor = COLORS[leader as Candidate] || '#cbd5e1';
+
+  // Custom Tooltip Component
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-slate-900/95 border border-white/10 p-4 rounded-lg shadow-xl backdrop-blur-md min-w-[200px]">
+          <div className="mb-2 border-b border-white/10 pb-2">
+            <p className="font-bold text-white text-sm uppercase tracking-wider">{data.name}</p>
+            <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+               {data.votes} votes for {leader}
+            </p>
+          </div>
+          <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+            {data.voterList && data.voterList.length > 0 ? (
+                <ul className="space-y-1">
+                    {data.voterList.map((name: string, idx: number) => (
+                        <li key={idx} className="text-xs text-slate-300 font-medium flex items-center gap-2">
+                            <span className="w-1 h-1 bg-teal-500 rounded-full flex-shrink-0"></span>
+                            {name}
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <span className="text-xs text-slate-500 italic">No votes recorded</span>
+            )}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <ScrollReveal>
@@ -170,19 +208,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                 />
                                 <Tooltip 
                                     cursor={false}
-                                    isAnimationActive={false}
-                                    offset={20}
-                                    contentStyle={{ 
-                                        backgroundColor: 'rgba(15, 23, 42, 0.95)', 
-                                        borderColor: 'rgba(255,255,255,0.1)', 
-                                        color: '#fff', 
-                                        borderRadius: '8px',
-                                        backdropFilter: 'blur(8px)',
-                                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
-                                    }}
-                                    itemStyle={{ color: '#fff' }}
-                                    labelStyle={{ color: '#fff' }}
-                                    formatter={(value: number) => [`${value} votes for ${leader}`]}
+                                    content={<CustomTooltip />}
                                 />
                                 <Bar 
                                     dataKey="votes" 
