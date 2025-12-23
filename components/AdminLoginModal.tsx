@@ -10,17 +10,23 @@ interface AdminLoginModalProps {
 
 /**
  * SHA-256 Hash Function using native Web Crypto API
- * tarantino1994 -> e276fdf1c9d66ff8c5d8763bf4f053f2c5dfca6695ac823b867b142e31e26176
+ * This function converts user input into a unique cryptographic fingerprint (Hash).
  */
 async function getHash(message: string) {
-  const msgUint8 = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
+  try {
+    const msgUint8 = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+  } catch (e) {
+    console.error("Critical error in hash generation:", e);
+    return null;
+  }
 }
 
-const DEFAULT_HASH = "e276fdf1c9d66ff8c5d8763bf4f053f2c5dfca6695ac823b867b142e31e26176"; // tarantino1994 (Standard SHA-256)
+// Cryptographic hash of the master key. The original password is not stored in this code.
+const MASTER_HASH = "613dbe3d6c1ba08e5e4f8383f3148ec8e33aa334ede1f7536db8eaf7e4742383";
 
 export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose, onLogin }) => {
   const [password, setPassword] = useState('');
@@ -32,7 +38,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanInput = password.trim().toLowerCase();
+    const cleanInput = password.trim();
     
     if (!cleanInput) return;
     
@@ -40,37 +46,43 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
     setError(null);
 
     try {
-      // 1. Calculate Hash for user input
       const inputHash = await getHash(cleanInput);
       
-      // 2. Fetch hash from Supabase
-      const { data, error: dbError } = await supabase
+      // 1. Verification via Local Hash (Secure against code inspection)
+      if (inputHash === MASTER_HASH) {
+        handleSuccess();
+        return;
+      }
+
+      // 2. Supabase Fallback for dynamic keys if they exist
+      const { data } = await supabase
         .from('admin_access')
         .select('secret_key')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      const validHash = data?.secret_key?.trim() || DEFAULT_HASH;
+      const dbHash = data?.secret_key?.trim();
       
-      // Artificial delay for visual feedback
-      await new Promise(r => setTimeout(r, 500));
-
-      if (inputHash === validHash) {
-        setStatus('success');
-        await new Promise(r => setTimeout(r, 400));
-        onLogin();
-        setPassword('');
-        onClose();
+      if (dbHash && inputHash === dbHash) {
+        handleSuccess();
       } else {
-        setError("Invalid access key.");
+        setError("Incorrect password.");
         setStatus('idle');
       }
     } catch (err) {
-      console.error("Auth process error:", err);
-      setError("Internal error. Please try again.");
+      setError("System error. Please try again.");
       setStatus('idle');
     }
+  };
+
+  const handleSuccess = async () => {
+    setStatus('success');
+    await new Promise(r => setTimeout(r, 400));
+    onLogin();
+    setPassword('');
+    setStatus('idle');
+    onClose();
   };
 
   const handleClose = () => {
@@ -84,12 +96,9 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 animate-in fade-in duration-500">
       <div className="bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-300 ring-1 ring-white/5 relative">
-        
-        {/* Close Button */}
         <button 
           onClick={handleClose}
           className="absolute top-6 right-6 p-2 text-slate-500 hover:text-white transition-colors rounded-full hover:bg-white/5 z-10"
-          aria-label="Close"
         >
           <X className="w-6 h-6" />
         </button>
@@ -105,7 +114,8 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
               </div>
             )}
           </div>
-          <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-1">Restricted Access</h3>
+          <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-1">Administration</h3>
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Restricted Access</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 pt-4 space-y-6">
@@ -121,6 +131,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
                 className={`w-full bg-black/40 border-2 ${error ? 'border-red-500/50' : 'border-white/5'} rounded-2xl px-6 py-5 text-white focus:outline-none focus:border-teal-500/50 transition-all text-xl font-mono tracking-[0.3em] text-center`}
                 placeholder="PASSWORD"
                 autoFocus
+                autoComplete="off"
                 disabled={status !== 'idle'}
               />
               <button
@@ -145,11 +156,13 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
             disabled={status !== 'idle' || !password.trim()}
             className="w-full py-5 bg-white text-slate-950 rounded-2xl hover:bg-teal-400 font-black uppercase tracking-widest transition-all shadow-xl active:scale-[0.98] disabled:opacity-20 flex items-center justify-center gap-3"
           >
-            {status === 'checking' && <Loader2 className="w-5 h-5 animate-spin" />}
-            {status === 'success' && <CheckCircle2 className="w-5 h-5 text-teal-950" />}
-            {status === 'idle' && "Authenticate"}
-            {status === 'checking' && "Verifying..."}
-            {status === 'success' && "Access Granted"}
+            {status === 'checking' ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : status === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 text-teal-950" />
+            ) : (
+              "Access Panel"
+            )}
           </button>
         </form>
       </div>

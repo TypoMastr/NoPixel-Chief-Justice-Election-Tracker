@@ -24,7 +24,6 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
   const getDeptTheme = (dept: string) => {
     const d = dept.toUpperCase();
     
-    // BCSO Theme: Tan/Brown
     if (d === 'BSCO' || d === 'BCSO') {
       return {
         cardWrapper: "bg-gradient-to-br from-[#423a26] to-[#262115] border-[#7d7150]/60 shadow-[0_10px_40px_rgba(0,0,0,0.4)]",
@@ -37,7 +36,6 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
       };
     } 
     
-    // LSPD Theme: Police Blue
     if (d === 'LSPD') {
       return {
         cardWrapper: "bg-gradient-to-br from-[#0f172a] to-[#1e3a8a] border-blue-800/60 shadow-[0_10px_40px_rgba(0,0,0,0.4)]",
@@ -50,7 +48,6 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
       };
     }
     
-    // SASM Theme: Slate/Grey
     if (d === 'SASM') {
       return {
         cardWrapper: "bg-gradient-to-br from-[#64748b] to-[#475569] border-slate-400/50 shadow-[0_10px_40px_rgba(0,0,0,0.4)]",
@@ -63,7 +60,6 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
       };
     }
 
-    // DOC Theme: Deepest Neutro (Slate 950) - Máximo contraste com o fundo
     if (d === 'DOC') {
       return {
         cardWrapper: "bg-slate-950/98 border-slate-800 shadow-[0_20px_60px_rgba(0,0,0,0.8)] ring-1 ring-white/5",
@@ -76,7 +72,6 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
       };
     }
 
-    // DOJ Theme: Medium Neutro (Slate 900) - Ligeiramente mais claro que DOC
     if (d === 'DOJ') {
       return {
         cardWrapper: "bg-slate-900/90 border-slate-700 shadow-[0_20px_50px_rgba(0,0,0,0.6)] ring-1 ring-white/5",
@@ -89,7 +84,6 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
       };
     }
 
-    // Default Theme: Standard Slate
     return {
       cardWrapper: "bg-slate-900/90 border-white/10 shadow-xl",
       title: "text-slate-300",
@@ -177,12 +171,6 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
             </ScrollReveal>
           );
         })}
-
-        {votes.length === 0 && (
-          <div className="text-center py-20 bg-slate-800/20 border border-white/5 rounded-2xl">
-            <p className="text-slate-500 font-black uppercase tracking-widest text-sm">No records found</p>
-          </div>
-        )}
       </div>
     </div>
   );

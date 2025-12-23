@@ -10,7 +10,7 @@ import { NominationsList } from './components/NominationsList';
 import { VoteModal } from './components/VoteModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { ReportModal } from './components/ReportModal';
-import { Scale, Plus, Gavel, ExternalLink, Loader2, Lock, LogOut, FileText } from 'lucide-react';
+import { Scale, Plus, Gavel, Loader2, Lock, LogOut, FileText } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { ScrollReveal } from './components/ScrollReveal';
 import { ParallaxBackground } from './components/ParallaxBackground';
@@ -297,22 +297,6 @@ const App: React.FC = () => {
         {/* Nominations List */}
         <NominationsList />
 
-        {/* Discord Link - Only Visible to Admin */}
-        {isAdmin && (
-          <ScrollReveal>
-            <div className="flex justify-center pt-8 border-t border-slate-800">
-                <a 
-                    href="discord://discord.com/channels/85441497989664768/1032678228512493619/1452750119471681699"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] text-white px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-[#5865F2]/25 hover:-translate-y-1 border border-[#5865F2]/50 text-sm md:text-base w-full md:w-auto justify-center group"
-                >
-                    <ExternalLink className="w-5 h-5 group-hover:rotate-45 transition-transform" />
-                    <span>View Latest Updates on Discord</span>
-                </a>
-            </div>
-          </ScrollReveal>
-        )}
       </div>
 
       <footer className="mt-4 md:mt-8 py-4 border-t border-slate-800/50 text-center mb-16 md:mb-0 z-10">
