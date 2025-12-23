@@ -50,5 +50,5 @@ export const COLORS = {
   [Candidate.BRITTANY_ANGEL]: "#14b8a6", // Teal-500
   [Candidate.NATHANIEL_GREYSON]: "#3b82f6", // Blue-500
   [Candidate.SEAN_DANIELSON]: "#a855f7", // Purple-500
-  [Candidate.ABSTAINED]: "#64748b", // Slate-500 (Neutral/Grey)
+  [Candidate.ABSTAINED]: "#cbd5e1", // Slate-300 (Light Grey for readability on dark cards)
 };
