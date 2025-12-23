@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Lock, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Lock, Loader2, ShieldAlert, Eye, EyeOff, Database, CheckCircle2, X } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 interface AdminLoginModalProps {
   isOpen: boolean;
@@ -7,88 +8,109 @@ interface AdminLoginModalProps {
   onLogin: () => void;
 }
 
-// SHA-256 Hash da senha "tarantino1994"
-const ADMIN_HASH = "365b9395f1d41870198031d2797e9742df5a3d758c0c1692244198305c56f8d0";
+/**
+ * SHA-256 Hash Function using native Web Crypto API
+ * tarantino1994 -> e276fdf1c9d66ff8c5d8763bf4f053f2c5dfca6695ac823b867b142e31e26176
+ */
+async function getHash(message: string) {
+  const msgUint8 = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
+const DEFAULT_HASH = "e276fdf1c9d66ff8c5d8763bf4f053f2c5dfca6695ac823b867b142e31e26176"; // tarantino1994 (Standard SHA-256)
 
 export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose, onLogin }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isChecking, setIsChecking] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'checking' | 'success'>('idle');
 
   if (!isOpen) return null;
 
-  const verifyPassword = async (input: string) => {
-    const cleanInput = input.trim(); // Remove espaços acidentais
-    
-    // Verificação prioritária por texto plano para garantir funcionamento em testes
-    if (cleanInput === "tarantino1994") return true;
-
-    // Verificação por Hash como camada secundária/produção
-    const isCryptoAvailable = window.crypto && window.crypto.subtle;
-    if (isCryptoAvailable) {
-      try {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(cleanInput);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        return hashHex === ADMIN_HASH;
-      } catch (e) {
-        console.error("Erro no processamento de segurança:", e);
-      }
-    }
-    
-    return false;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!password) return;
+    const cleanInput = password.trim().toLowerCase();
     
-    setIsChecking(true);
+    if (!cleanInput) return;
+    
+    setStatus('checking');
     setError(null);
 
     try {
-      const isValid = await verifyPassword(password);
+      // 1. Calculate Hash for user input
+      const inputHash = await getHash(cleanInput);
       
-      // Delay curto para feedback visual
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // 2. Fetch hash from Supabase
+      const { data, error: dbError } = await supabase
+        .from('admin_access')
+        .select('secret_key')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (isValid) {
+      const validHash = data?.secret_key?.trim() || DEFAULT_HASH;
+      
+      // Artificial delay for visual feedback
+      await new Promise(r => setTimeout(r, 500));
+
+      if (inputHash === validHash) {
+        setStatus('success');
+        await new Promise(r => setTimeout(r, 400));
         onLogin();
         setPassword('');
         onClose();
       } else {
-        setError("Senha incorreta. Verifique se digitou tarantino1994 corretamente.");
-        setPassword('');
+        setError("Invalid access key.");
+        setStatus('idle');
       }
     } catch (err) {
-      setError("Erro interno ao validar acesso.");
-    } finally {
-      setIsChecking(false);
+      console.error("Auth process error:", err);
+      setError("Internal error. Please try again.");
+      setStatus('idle');
     }
   };
 
+  const handleClose = () => {
+    if (status === 'checking') return;
+    setPassword('');
+    setError(null);
+    setStatus('idle');
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-300">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="flex justify-between items-center p-6 border-b border-white/5 bg-slate-800/50">
-          <h3 className="text-xl font-bold text-white flex items-center gap-3">
-            <div className="p-2 bg-teal-500/10 rounded-lg">
-              <Lock className="w-5 h-5 text-teal-400" />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 animate-in fade-in duration-500">
+      <div className="bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-300 ring-1 ring-white/5 relative">
+        
+        {/* Close Button */}
+        <button 
+          onClick={handleClose}
+          className="absolute top-6 right-6 p-2 text-slate-500 hover:text-white transition-colors rounded-full hover:bg-white/5 z-10"
+          aria-label="Close"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        <div className="p-8 pb-4 text-center">
+          <div className="relative inline-block mb-6">
+            <div className={`p-5 rounded-3xl transition-all duration-500 ${status === 'success' ? 'bg-teal-500/20' : 'bg-slate-800'}`}>
+              <Lock className={`w-10 h-10 ${status === 'success' ? 'text-teal-400' : 'text-slate-400'}`} />
             </div>
-            Painel Admin
-          </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-1 hover:bg-white/5 rounded-lg">
-            <X className="w-6 h-6" />
-          </button>
+            {status === 'checking' && (
+              <div className="absolute -bottom-2 -right-2 bg-blue-500 p-1.5 rounded-full animate-spin border-4 border-slate-900">
+                <Database className="w-3 h-3 text-white" />
+              </div>
+            )}
+          </div>
+          <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-1">Restricted Access</h3>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div>
-            <label className="block text-slate-400 text-xs font-black uppercase tracking-widest mb-3">Senha de Acesso</label>
-            <div className="relative">
+        <form onSubmit={handleSubmit} className="p-8 pt-4 space-y-6">
+          <div className="space-y-4">
+            <div className="relative group">
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
@@ -96,45 +118,39 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
                   setPassword(e.target.value);
                   if (error) setError(null);
                 }}
-                className={`w-full bg-slate-950 border ${error ? 'border-red-500/50' : 'border-white/10'} rounded-xl px-4 py-4 text-white focus:outline-none focus:border-teal-500/50 transition-all text-base font-mono tracking-wider`}
-                placeholder="••••••••••••"
+                className={`w-full bg-black/40 border-2 ${error ? 'border-red-500/50' : 'border-white/5'} rounded-2xl px-6 py-5 text-white focus:outline-none focus:border-teal-500/50 transition-all text-xl font-mono tracking-[0.3em] text-center`}
+                placeholder="PASSWORD"
                 autoFocus
-                disabled={isChecking}
+                disabled={status !== 'idle'}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-teal-400 p-2 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-teal-400 p-2"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
+            
             {error && (
-              <div className="flex items-center gap-2 mt-3 text-red-400">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <p className="text-xs font-bold">{error}</p>
+              <div className="flex items-center justify-center gap-2 text-red-400 text-[10px] font-bold uppercase tracking-widest animate-bounce">
+                <ShieldAlert className="w-3 h-3" />
+                {error}
               </div>
             )}
           </div>
 
           <button
             type="submit"
-            disabled={isChecking || !password.trim()}
-            className="w-full py-4 bg-teal-600 text-white rounded-xl hover:bg-teal-500 font-black uppercase tracking-widest transition-all shadow-lg shadow-teal-900/40 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-3"
+            disabled={status !== 'idle' || !password.trim()}
+            className="w-full py-5 bg-white text-slate-950 rounded-2xl hover:bg-teal-400 font-black uppercase tracking-widest transition-all shadow-xl active:scale-[0.98] disabled:opacity-20 flex items-center justify-center gap-3"
           >
-            {isChecking ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" /> 
-                Processando
-              </>
-            ) : (
-              'Entrar agora'
-            )}
+            {status === 'checking' && <Loader2 className="w-5 h-5 animate-spin" />}
+            {status === 'success' && <CheckCircle2 className="w-5 h-5 text-teal-950" />}
+            {status === 'idle' && "Authenticate"}
+            {status === 'checking' && "Verifying..."}
+            {status === 'success' && "Access Granted"}
           </button>
-          
-          <p className="text-[10px] text-slate-500 text-center font-medium leading-relaxed">
-            Ambiente de Teste: Certifique-se de usar a senha master atribuída ao sistema.
-          </p>
         </form>
       </div>
     </div>
