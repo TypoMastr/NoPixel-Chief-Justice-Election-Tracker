@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Vote, Candidate } from './types';
-import { CANDIDATE_LIST } from './constants';
+import { CANDIDATE_LIST, INITIAL_VOTES } from './constants';
 import { StatsCards } from './components/StatsCards';
 import { ResultsSection } from './components/ResultsSection';
 import { DepartmentDetailedStats } from './components/DepartmentDetailedStats';
@@ -9,42 +9,46 @@ import { VoterGrid } from './components/VoterGrid';
 import { VoteModal } from './components/VoteModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { supabase } from './lib/supabaseClient';
-import { Scale, Plus, Gavel, ExternalLink, ShieldCheck, LogOut, Lock, AlertCircle } from 'lucide-react';
+import { Scale, Plus, Gavel, ExternalLink, ShieldCheck, LogOut, Lock, WifiOff, Save } from 'lucide-react';
 
 const ADMIN_PASS = 'tarantino1994';
+const LOCAL_STORAGE_KEY = 'chief_justice_votes_data';
 
 const App: React.FC = () => {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
   const [editingVote, setEditingVote] = useState<Vote | null>(null);
+  const [isOffline, setIsOffline] = useState(false);
 
-  // Initial Data Fetch from Supabase
+  // Initial Data Fetch
   useEffect(() => {
     fetchVotes();
     
-    // Check session storage for admin persistence during refresh
+    // Check session storage for admin persistence
     const sessionAdmin = sessionStorage.getItem('isAdmin');
     if (sessionAdmin === 'true') setIsAdmin(true);
   }, []);
 
   const fetchVotes = async () => {
+    setLoading(true);
+    
     try {
-      setLoading(true);
-      setErrorMsg(null);
-      
-      const { data, error } = await supabase
-        .from('votes')
-        .select('*')
-        .order('timestamp', { ascending: false });
+      // 1. Try fetching from Supabase
+      // We set a timeout to fail fast if the connection hangs
+      const { data, error } = await Promise.race([
+        supabase.from('votes').select('*').order('timestamp', { ascending: false }),
+        new Promise<{ data: null, error: any }>((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        )
+      ]);
 
       if (error) throw error;
       
       if (data) {
-        // Normalize data to handle potential case-sensitivity issues from DB (voterName vs votername)
+        // Normalize Supabase data
         const normalizedVotes: Vote[] = data.map((row: any) => ({
           id: row.id,
           voterName: row.voterName || row.votername || row.voter_name || 'Unknown',
@@ -53,23 +57,35 @@ const App: React.FC = () => {
           timestamp: row.timestamp || (row.created_at ? new Date(row.created_at).getTime() : Date.now())
         }));
         setVotes(normalizedVotes);
+        setIsOffline(false);
+        // Backup to local storage just in case
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(normalizedVotes));
       }
-    } catch (error: any) {
-      console.error('Error fetching votes:', error);
-      // Ensure we extract a readable message
-      const message = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+    } catch (error) {
+      console.warn('Supabase connection failed or timed out, switching to offline mode.', error);
+      setIsOffline(true);
       
-      let friendlyMessage = message;
-      if (message.includes("relation") && message.includes("does not exist")) {
-        friendlyMessage = "Table 'votes' not found. Please create the table in Supabase.";
-      } else if (message.includes("Failed to fetch")) {
-        friendlyMessage = "Connection failed. Check your Supabase URL and internet connection.";
+      // 2. Fallback: Try LocalStorage
+      const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (storedData) {
+        try {
+            setVotes(JSON.parse(storedData));
+        } catch (e) {
+            setVotes(INITIAL_VOTES);
+        }
+      } else {
+        // 3. Fallback: Use Initial Constants (Data from screenshots)
+        setVotes(INITIAL_VOTES);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(INITIAL_VOTES));
       }
-      
-      setErrorMsg(friendlyMessage);
     } finally {
       setLoading(false);
     }
+  };
+
+  const updateLocalData = (newVotes: Vote[]) => {
+    setVotes(newVotes);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newVotes));
   };
 
   const handleLogin = (password: string) => {
@@ -88,53 +104,66 @@ const App: React.FC = () => {
   };
 
   const handleSaveVote = async (voteData: Omit<Vote, 'id' | 'timestamp'>, id?: string) => {
+    const timestamp = Date.now();
+
+    // Offline / Fallback Logic
+    if (isOffline) {
+      let updatedVotes: Vote[];
+      if (id) {
+        updatedVotes = votes.map(v => v.id === id ? { ...v, ...voteData } : v);
+      } else {
+        const newVote: Vote = { 
+          id: Math.random().toString(36).substring(2, 15), 
+          ...voteData, 
+          timestamp 
+        };
+        updatedVotes = [newVote, ...votes]; // Add to top
+      }
+      updateLocalData(updatedVotes);
+      return;
+    }
+
+    // Online Logic
     try {
       const payload = {
-        voterName: voteData.voterName, // Ensure these match your DB column names (or use snake_case if your DB uses it)
+        voterName: voteData.voterName,
         department: voteData.department,
         candidate: voteData.candidate
       };
 
       if (id) {
-        // Edit existing in Supabase
-        const { error } = await supabase
-          .from('votes')
-          .update(payload)
-          .eq('id', id);
-
+        const { error } = await supabase.from('votes').update(payload).eq('id', id);
         if (error) throw error;
       } else {
-        // Add new to Supabase
-        const { error } = await supabase
-          .from('votes')
-          .insert([{
-            ...payload,
-            timestamp: Date.now()
-          }]);
-
+        const { error } = await supabase.from('votes').insert([{ ...payload, timestamp }]);
         if (error) throw error;
       }
-      // Refresh local state
       fetchVotes();
     } catch (error: any) {
       console.error('Error saving vote:', error);
-      const message = error?.message || "Unknown error";
-      alert(`Failed to save vote: ${message}`);
+      alert('Could not save to cloud database. Switching to offline mode and saving locally.');
+      setIsOffline(true);
+      // Re-run as offline to ensure data is saved locally immediately
+      handleSaveVote(voteData, id); 
     }
   };
 
   const handleDeleteVote = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('votes')
-        .delete()
-        .eq('id', id);
+    if (isOffline) {
+      const updatedVotes = votes.filter(v => v.id !== id);
+      updateLocalData(updatedVotes);
+      return;
+    }
 
+    try {
+      const { error } = await supabase.from('votes').delete().eq('id', id);
       if (error) throw error;
       fetchVotes();
     } catch (error: any) {
       console.error('Error deleting vote:', error);
-      alert(`Failed to delete vote: ${error?.message || "Unknown error"}`);
+      alert('Could not delete from cloud database. Switching to offline mode.');
+      setIsOffline(true);
+      handleDeleteVote(id);
     }
   };
 
@@ -168,24 +197,29 @@ const App: React.FC = () => {
           </h1>
         </div>
 
-        {/* Loading / Error / Content State */}
+        {/* Offline Indicator */}
+        {isOffline && (
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in">
+             <div className="flex items-center gap-3">
+                <WifiOff className="w-6 h-6 text-yellow-500" />
+                <div>
+                    <h3 className="text-yellow-200 font-bold text-sm uppercase tracking-wide">Offline / Local Mode</h3>
+                    <p className="text-yellow-200/70 text-xs">
+                        Connected to cloud failed. Changes are saved to your browser's storage.
+                    </p>
+                </div>
+             </div>
+             <div className="flex items-center gap-2 text-xs text-yellow-500/60 font-mono bg-yellow-950/30 px-3 py-1.5 rounded">
+                <Save className="w-3 h-3" />
+                Data persisting locally
+             </div>
+          </div>
+        )}
+
+        {/* Loading */}
         {loading ? (
            <div className="flex justify-center items-center py-20">
              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-400"></div>
-           </div>
-        ) : errorMsg ? (
-           <div className="bg-red-500/10 border border-red-500/50 rounded-2xl p-8 text-center animate-in fade-in">
-              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-white mb-2">Connection Error</h2>
-              <p className="text-red-200 font-mono text-sm break-all max-w-2xl mx-auto">{errorMsg}</p>
-              <div className="mt-6 text-slate-400 text-sm">
-                  <p className="mb-2">Setup Checklist:</p>
-                  <ul className="list-disc list-inside text-left max-w-md mx-auto space-y-1">
-                      <li>Check <strong>VITE_SUPABASE_URL</strong> in environment variables.</li>
-                      <li>Check <strong>VITE_SUPABASE_ANON_KEY</strong> in environment variables.</li>
-                      <li>Ensure table <strong>votes</strong> exists with columns: <code>id, voterName, department, candidate, timestamp</code>.</li>
-                  </ul>
-              </div>
            </div>
         ) : (
           <>
