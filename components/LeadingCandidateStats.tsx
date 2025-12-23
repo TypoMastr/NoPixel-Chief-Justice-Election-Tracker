@@ -65,7 +65,14 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                         <div className="flex items-center gap-2 mb-2">
                             <span className="bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 px-2 py-1 rounded text-[11px] font-bold uppercase tracking-widest shadow-[0_0_10px_rgba(234,179,8,0.2)]">Current Leader</span>
                         </div>
-                        <h1 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md">
+                        <h1 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md flex items-center gap-4">
+                            {leader === Candidate.BRITTANY_ANGEL && (
+                                <img 
+                                    src="https://cdn.7tv.app/emote/01KCA38N23VMWVX2GCTXZ46YDK/4x.webp" 
+                                    alt="Brittany Angel" 
+                                    className="w-14 h-14 md:w-16 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(20,184,166,0.3)]" 
+                                />
+                            )}
                             {leader}
                         </h1>
                          <span className="text-lg font-medium text-slate-300 mt-2 block flex items-center gap-3">
