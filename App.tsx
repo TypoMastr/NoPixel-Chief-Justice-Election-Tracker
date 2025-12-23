@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Vote, Candidate } from './types';
 import { CANDIDATE_LIST, ACTIVE_CANDIDATES } from './constants';
@@ -175,7 +174,7 @@ const App: React.FC = () => {
         {isAdmin && (
           <div className="flex justify-center pt-8 border-t border-slate-800">
               <a 
-                  href="https://discord.com/channels/85441497989664768/1032678228512493619/1452750119471681699"
+                  href="discord://discord.com/channels/85441497989664768/1032678228512493619/1452750119471681699"
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] text-white px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-[#5865F2]/25 hover:-translate-y-1 border border-[#5865F2]/50 text-sm md:text-base w-full md:w-auto justify-center"
