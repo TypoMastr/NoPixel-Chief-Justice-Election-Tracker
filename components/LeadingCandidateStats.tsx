@@ -156,7 +156,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                   }
                                   return null;
                                 }} />
-                                <Bar dataKey="votes" radius={[0, 6, 6, 0]} barSize={28} background={{ fill: 'rgba(30, 41, 59, 0.4)', radius: [0, 6, 6, 0] }} isAnimationActive={true} animationDuration={1000}>
+                                <Bar dataKey="votes" radius={6} barSize={28} background={{ fill: 'rgba(30, 41, 59, 0.4)', radius: 6 }} isAnimationActive={true} animationDuration={1000}>
                                     {breakdownData.map((entry, index) => <Cell key={`cell-${index}`} fill={leaderColor} />)}
                                     <LabelList dataKey="votes" content={<CustomBarLabel />} />
                                 </Bar>

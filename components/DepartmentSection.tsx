@@ -81,7 +81,7 @@ export const DepartmentSection: React.FC<DepartmentSectionProps> = ({ votes }) =
                 <Bar 
                     dataKey="count" 
                     fill="#14b8a6" 
-                    radius={[6, 6, 0, 0]} 
+                    radius={6} 
                     barSize={30}
                     isAnimationActive={true}
                     animationDuration={800} // Speed up
