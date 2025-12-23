@@ -171,10 +171,10 @@ const App: React.FC = () => {
                     {/* Top Gradient Line */}
                     <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-teal-400 to-transparent opacity-70 shadow-[0_0_15px_rgba(45,212,191,0.5)]"></div>
                     
-                    <div className="flex items-center justify-center relative z-10 gap-4 md:gap-8">
+                    <div className="flex items-center justify-center relative z-10 gap-3 md:gap-8">
                             {/* Scale Icon */}
-                            <div className="hidden md:flex items-center justify-center">
-                                <Scale className="w-10 h-10 text-slate-200" />
+                            <div className="flex items-center justify-center">
+                                <Scale className="w-6 h-6 md:w-10 md:h-10 text-slate-200" />
                             </div>
 
                             <div className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-4 text-center">
@@ -190,8 +190,8 @@ const App: React.FC = () => {
                             </div>
 
                             {/* Gavel Icon */}
-                            <div className="hidden md:flex items-center justify-center">
-                                <Gavel className="w-10 h-10 text-slate-200 scale-x-[-1]" />
+                            <div className="flex items-center justify-center">
+                                <Gavel className="w-6 h-6 md:w-10 md:h-10 text-slate-200 scale-x-[-1]" />
                             </div>
                     </div>
                 </div>
