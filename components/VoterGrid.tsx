@@ -6,10 +6,9 @@ import { COLORS } from '../constants';
 interface VoterGridProps {
   votes: Vote[];
   onEdit: (vote: Vote) => void;
-  isAdmin: boolean;
 }
 
-export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) => {
+export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit }) => {
   // 1. Group votes by Department
   const groupedVotes = votes.reduce((acc, vote) => {
     if (!acc[vote.department]) {
@@ -23,7 +22,7 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
   const sortedDepartments = Object.keys(groupedVotes).sort();
 
   return (
-    <div className="bg-slate-800 border border-slate-600 rounded-2xl p-8 shadow-xl mb-12">
+    <div className="bg-slate-800 border border-slate-600 rounded-2xl p-8 shadow-xl mb-20">
       <div className="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
         <h2 className="text-2xl font-bold text-teal-400 flex items-center gap-3">
           👥 All Voters List <span className="text-slate-300 text-sm font-bold bg-slate-700 px-3 py-1 rounded-full border border-slate-600">Total: {votes.length}</span>
@@ -49,8 +48,8 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
                     {deptVotes.map((vote) => (
                     <div 
                         key={vote.id} 
-                        onClick={() => isAdmin && onEdit(vote)}
-                        className={`group relative bg-slate-800 border border-slate-600 p-4 rounded-lg transition-all shadow-sm ${isAdmin ? 'hover:border-teal-500/50 hover:bg-slate-750 cursor-pointer hover:shadow-lg hover:-translate-y-1' : ''}`}
+                        onClick={() => onEdit(vote)}
+                        className="group relative bg-slate-800 border border-slate-600 p-4 rounded-lg hover:border-teal-500/50 transition-all hover:bg-slate-750 cursor-pointer shadow-sm hover:shadow-lg hover:-translate-y-1"
                     >
                         <div className="flex flex-col gap-3">
                             {/* Name */}
@@ -58,9 +57,7 @@ export const VoterGrid: React.FC<VoterGridProps> = ({ votes, onEdit, isAdmin }) 
                                 <h3 className="text-white font-bold text-sm truncate leading-tight group-hover:text-teal-300 transition-colors" title={vote.voterName}>
                                     {vote.voterName}
                                 </h3>
-                                {isAdmin && (
-                                    <Edit2 className="w-3.5 h-3.5 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                )}
+                                <Edit2 className="w-3.5 h-3.5 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
 
                             {/* Candidate Pill */}
