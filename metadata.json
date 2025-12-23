@@ -1,0 +1,5 @@
+{
+  "name": "Chief Justice Election Tracker",
+  "description": "A voting tracking system for election monitoring with data persistence, analytics dashboards, and voter management.",
+  "requestFramePermissions": []
+}
