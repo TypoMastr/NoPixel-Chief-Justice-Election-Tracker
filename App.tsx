@@ -6,9 +6,10 @@ import { ResultsSection } from './components/ResultsSection';
 import { DepartmentDetailedStats } from './components/DepartmentDetailedStats';
 import { LeadingCandidateStats } from './components/LeadingCandidateStats';
 import { VoterGrid } from './components/VoterGrid';
+import { NominationsList } from './components/NominationsList';
 import { VoteModal } from './components/VoteModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
-import { Scale, Plus, Gavel, ExternalLink, Loader2, Lock, LogOut } from 'lucide-react';
+import { Scale, Plus, Gavel, ExternalLink, Loader2, Lock, LogOut, Radio } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { ScrollReveal } from './components/ScrollReveal';
 import { ParallaxBackground } from './components/ParallaxBackground';
@@ -162,16 +163,38 @@ const App: React.FC = () => {
         
         {/* Header */}
         <ScrollReveal>
-            <div className="relative overflow-hidden glass-panel rounded-2xl p-4 md:p-8 text-center shadow-2xl ring-1 ring-white/5 group">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500 opacity-90"></div>
-            {/* Header Shine Effect */}
-            <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-10 animate-shimmer" style={{ animationDuration: '3s' }} />
+            <div className="relative mb-4 md:mb-8 mt-2 md:mt-4">
+                {/* Glow Effect behind header */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-teal-500/10 rounded-full blur-[80px] pointer-events-none"></div>
 
-            <h1 className="text-lg sm:text-xl md:text-5xl font-black text-white tracking-tight flex flex-row items-center justify-center gap-2 md:gap-4 drop-shadow-lg leading-tight whitespace-nowrap z-10 relative">
-                <Scale className="w-5 h-5 md:w-12 md:h-12 text-teal-400 animate-pulse" />
-                <span className="bg-clip-text text-transparent bg-gradient-to-br from-white to-slate-400">Chief Justice Election</span>
-                <Gavel className="w-5 h-5 md:w-12 md:h-12 text-blue-500 transform -scale-x-100" />
-            </h1>
+                <div className="relative overflow-hidden glass-panel rounded-2xl p-4 md:p-6 text-center shadow-2xl ring-1 ring-white/10 group">
+                    {/* Top Gradient Line */}
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-teal-400 to-transparent opacity-70 shadow-[0_0_15px_rgba(45,212,191,0.5)]"></div>
+                    
+                    <div className="flex items-center justify-center relative z-10 gap-4 md:gap-8">
+                            {/* Scale Icon */}
+                            <div className="hidden md:flex items-center justify-center">
+                                <Scale className="w-10 h-10 text-slate-200" />
+                            </div>
+
+                            <div className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-4 text-center">
+                                <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 tracking-tighter drop-shadow-xl leading-none">
+                                    CHIEF JUSTICE
+                                </h1>
+                                
+                                <span className="hidden md:block w-2 h-2 rounded-full bg-slate-200/80 shadow-[0_0_10px_rgba(255,255,255,0.3)]"></span>
+
+                                <h2 className="text-xs md:text-2xl font-bold tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 drop-shadow-md">
+                                    Election Results
+                                </h2>
+                            </div>
+
+                            {/* Gavel Icon */}
+                            <div className="hidden md:flex items-center justify-center">
+                                <Gavel className="w-10 h-10 text-slate-200 scale-x-[-1]" />
+                            </div>
+                    </div>
+                </div>
             </div>
         </ScrollReveal>
 
@@ -194,6 +217,9 @@ const App: React.FC = () => {
 
         {/* Voters Grid */}
         <VoterGrid votes={votes} onEdit={openEditModal} isAdmin={isAdmin} />
+        
+        {/* Nominations List */}
+        <NominationsList />
 
         {/* Discord Link - Only Visible to Admin */}
         {isAdmin && (
