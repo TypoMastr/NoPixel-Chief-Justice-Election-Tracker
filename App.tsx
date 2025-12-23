@@ -8,13 +8,20 @@ import { DepartmentDetailedStats } from './components/DepartmentDetailedStats';
 import { LeadingCandidateStats } from './components/LeadingCandidateStats';
 import { VoterGrid } from './components/VoterGrid';
 import { VoteModal } from './components/VoteModal';
-import { Scale, Plus, Gavel, ExternalLink, Loader2 } from 'lucide-react';
+import { AdminLoginModal } from './components/AdminLoginModal';
+import { Scale, Plus, Gavel, ExternalLink, Loader2, Lock, LogOut } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
 const App: React.FC = () => {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Modal States
+  const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  
+  // Admin State
+  const [isAdmin, setIsAdmin] = useState(false);
   const [editingVote, setEditingVote] = useState<Vote | null>(null);
 
   // Fetch votes from Supabase on load
@@ -103,13 +110,15 @@ const App: React.FC = () => {
   };
 
   const openAddModal = () => {
+    if (!isAdmin) return;
     setEditingVote(null);
-    setIsModalOpen(true);
+    setIsVoteModalOpen(true);
   };
 
   const openEditModal = (vote: Vote) => {
+    if (!isAdmin) return;
     setEditingVote(vote);
-    setIsModalOpen(true);
+    setIsVoteModalOpen(true);
   };
 
   // Derived Stats
@@ -129,8 +138,8 @@ const App: React.FC = () => {
 
   return (
     // Changed background to a slightly lighter slate 900 base for better contrast with cards
-    <div className="min-h-screen bg-slate-900 p-4 md:p-8 text-slate-200 font-sans">
-      <div className="max-w-7xl mx-auto space-y-10 pb-20">
+    <div className="min-h-screen bg-slate-900 p-4 md:p-8 text-slate-200 font-sans flex flex-col">
+      <div className="max-w-7xl mx-auto space-y-10 w-full flex-grow">
         
         {/* Header */}
         <div className="relative overflow-hidden bg-slate-800 border border-slate-600 rounded-2xl p-8 text-center shadow-2xl ring-1 ring-white/5">
@@ -160,39 +169,70 @@ const App: React.FC = () => {
         <DepartmentDetailedStats votes={votes} />
 
         {/* Voters Grid */}
-        <VoterGrid votes={votes} onEdit={openEditModal} />
+        <VoterGrid votes={votes} onEdit={openEditModal} isAdmin={isAdmin} />
 
-        {/* Discord Link */}
-        <div className="flex justify-center pt-8 border-t border-slate-800">
-            <a 
-                href="https://discord.com/channels/85441497989664768/1032678228512493619/1452750119471681699"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-[#5865F2]/25 hover:-translate-y-1 border border-[#5865F2]/50"
-            >
-                <ExternalLink className="w-5 h-5" />
-                <span>View Latest Updates on Discord</span>
-            </a>
-        </div>
-
+        {/* Discord Link - Only Visible to Admin */}
+        {isAdmin && (
+          <div className="flex justify-center pt-8 border-t border-slate-800">
+              <a 
+                  href="https://discord.com/channels/85441497989664768/1032678228512493619/1452750119471681699"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-[#5865F2]/25 hover:-translate-y-1 border border-[#5865F2]/50"
+              >
+                  <ExternalLink className="w-5 h-5" />
+                  <span>View Latest Updates on Discord</span>
+              </a>
+          </div>
+        )}
       </div>
 
-      {/* Floating Action Button */}
-      <button 
-        onClick={openAddModal}
-        className="fixed bottom-8 right-8 bg-teal-500 hover:bg-teal-400 text-slate-950 p-4 rounded-full shadow-[0_0_30px_rgba(20,184,166,0.3)] hover:shadow-[0_0_40px_rgba(20,184,166,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center z-40 group border-4 border-slate-900"
-        title="Record New Vote"
-      >
-        <Plus className="w-8 h-8 stroke-[3] group-hover:rotate-90 transition-transform duration-300" />
-      </button>
+      {/* Footer / Admin Login */}
+      <footer className="mt-20 py-6 border-t border-slate-800 text-center">
+        {isAdmin ? (
+             <button 
+                onClick={() => setIsAdmin(false)}
+                className="text-slate-500 hover:text-red-400 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 mx-auto transition-colors"
+             >
+                <LogOut className="w-4 h-4" />
+                Logout Admin
+             </button>
+        ) : (
+            <button 
+                onClick={() => setIsLoginModalOpen(true)}
+                className="text-slate-600 hover:text-teal-500 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 mx-auto transition-colors"
+             >
+                <Lock className="w-3 h-3" />
+                Administration
+             </button>
+        )}
+      </footer>
 
-      {/* Modal */}
+      {/* Floating Action Button - Only Visible to Admin */}
+      {isAdmin && (
+        <button 
+            onClick={openAddModal}
+            className="fixed bottom-8 right-8 bg-teal-500 hover:bg-teal-400 text-slate-950 p-4 rounded-full shadow-[0_0_30px_rgba(20,184,166,0.3)] hover:shadow-[0_0_40px_rgba(20,184,166,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center z-40 group border-4 border-slate-900"
+            title="Record New Vote"
+        >
+            <Plus className="w-8 h-8 stroke-[3] group-hover:rotate-90 transition-transform duration-300" />
+        </button>
+      )}
+
+      {/* Vote Modal */}
       <VoteModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isVoteModalOpen} 
+        onClose={() => setIsVoteModalOpen(false)}
         onSave={handleSaveVote}
         onDelete={handleDeleteVote}
         editingVote={editingVote}
+      />
+
+      {/* Admin Login Modal */}
+      <AdminLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLogin={() => setIsAdmin(true)}
       />
     </div>
   );
