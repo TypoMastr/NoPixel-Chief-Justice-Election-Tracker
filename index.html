@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Chief Justice Election Results</title>
     <!-- Keeping Tailwind CDN for simplicity as requested, though usually we'd install it via npm -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,7 +21,17 @@
         font-family: 'Inter', sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        /* Prevent scroll chaining */
+        overscroll-behavior-y: none;
       }
+
+      /* Mobile Performance Optimization: Disable fixed background on touch devices */
+      @media (hover: none) and (pointer: coarse) {
+        body {
+          background-attachment: scroll; 
+        }
+      }
+
       /* Custom Scrollbar for dark theme */
       ::-webkit-scrollbar {
         width: 8px;
@@ -51,11 +61,6 @@
         }
       }
 
-      @keyframes widthGrow {
-        from { width: 0; }
-        to { width: 100%; } // Will be overridden by inline style width, but starts from 0
-      }
-
       @keyframes shimmer {
         0% { background-position: -1000px 0; }
         100% { background-position: 1000px 0; }
@@ -66,16 +71,19 @@
         opacity: 0; /* Start hidden */
       }
       
-      .delay-100 { animation-delay: 100ms; }
-      .delay-200 { animation-delay: 200ms; }
-      .delay-300 { animation-delay: 300ms; }
-      .delay-500 { animation-delay: 500ms; }
-      
+      /* Glass panel optimization: limit backdrop-filter usage or area */
       .glass-panel {
-        background: rgba(30, 41, 59, 0.7);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        background: rgba(30, 41, 59, 0.85); /* Slightly more opaque fallback */
         border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      /* Only apply heavy blur on devices that can likely handle it (desktops/modern tablets) */
+      @media screen and (min-width: 768px) {
+        .glass-panel {
+          background: rgba(30, 41, 59, 0.7);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+        }
       }
     </style>
   <script type="importmap">

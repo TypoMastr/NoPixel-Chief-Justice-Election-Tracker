@@ -24,8 +24,6 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
       ([entry]) => {
         if (entry.isIntersecting) {
           // Determine entry direction based on position relative to viewport center
-          // If top > innerHeight/2, it likely entered from the bottom (scrolling down)
-          // If top < innerHeight/2, it likely entered from the top (scrolling up)
           const isEnteringFromBottom = entry.boundingClientRect.top > (window.innerHeight / 2);
           setDirection(isEnteringFromBottom ? 'down' : 'up');
           setIsVisible(true);
@@ -35,7 +33,6 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
       },
       {
         threshold: threshold,
-        // Asymmetric margin: trigger slightly early from bottom
         rootMargin: "0px 0px -20px 0px"
       }
     );
@@ -52,11 +49,11 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   }, [threshold]);
 
   const getHiddenState = () => {
-    // If direction is down (scrolling down), element starts below and moves up (translate-y-12)
-    // If direction is up (scrolling up), element starts above and moves down (-translate-y-12)
+    // Removed 'filter blur-sm' for performance optimization on mobile devices.
+    // Opacity and Transform are handled by the compositor thread (GPU), while Blur often requires rasterization.
     return direction === 'down' 
-      ? 'opacity-0 translate-y-12 filter blur-sm scale-95' 
-      : 'opacity-0 -translate-y-12 filter blur-sm scale-95';
+      ? 'opacity-0 translate-y-8 scale-[0.98]' 
+      : 'opacity-0 -translate-y-8 scale-[0.98]';
   };
 
   return (
@@ -65,11 +62,12 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
       style={{ 
         width, 
         transitionDelay: isVisible ? `${delay}ms` : '0ms',
-        transitionDuration: '700ms'
+        transitionDuration: '600ms', // Slightly faster for snappier feel
       }}
-      className={`transform transition-all ease-out will-change-transform ${
+      // Added transform-gpu to force layer creation
+      className={`transform-gpu transition-all ease-out will-change-[transform,opacity] ${
         isVisible 
-          ? 'opacity-100 translate-y-0 filter blur-0 scale-100' 
+          ? 'opacity-100 translate-y-0 scale-100' 
           : getHiddenState()
       } ${className}`}
     >
