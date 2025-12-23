@@ -182,9 +182,9 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                 />
                                 <Bar 
                                     dataKey="votes" 
-                                    radius={[0, 4, 4, 0]} 
+                                    radius={[0, 4, 4, 0] as [number, number, number, number]}
                                     barSize={24} 
-                                    background={{ fill: 'rgba(30, 41, 59, 0.5)', radius: [0, 4, 4, 0] }}
+                                    background={{ fill: 'rgba(30, 41, 59, 0.5)', radius: [0, 4, 4, 0] as any }}
                                     isAnimationActive={true}
                                     animationDuration={1500}
                                     animationEasing="ease-out"
