@@ -37,6 +37,10 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
   // Process data for ACTIVE candidates only
   const data = ACTIVE_CANDIDATES.map(candidate => {
     const candidateVotes = votes.filter(v => v.candidate === candidate);
+    
+    // Sort voters alphabetically
+    candidateVotes.sort((a, b) => a.voterName.localeCompare(b.voterName));
+
     return {
       name: candidate,
       value: candidateVotes.length,
