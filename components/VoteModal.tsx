@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Vote, Candidate, Department } from '../types';
 import { CANDIDATE_LIST, DEPARTMENT_LIST } from '../constants';
 import { X, Trash2 } from 'lucide-react';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface VoteModalProps {
   isOpen: boolean;
@@ -16,6 +16,9 @@ export const VoteModal: React.FC<VoteModalProps> = ({ isOpen, onClose, onSave, o
   const [name, setName] = useState('');
   const [dept, setDept] = useState<Department>(Department.BSCO);
   const [candidate, setCandidate] = useState<Candidate>(Candidate.BRITTANY_ANGEL);
+  
+  // State for Delete Confirmation Dialog
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (editingVote) {
@@ -27,6 +30,8 @@ export const VoteModal: React.FC<VoteModalProps> = ({ isOpen, onClose, onSave, o
       setDept(Department.BSCO);
       setCandidate(Candidate.BRITTANY_ANGEL);
     }
+    // Reset modal states when opening/closing
+    setIsConfirmOpen(false);
   }, [editingVote, isOpen]);
 
   if (!isOpen) return null;
@@ -42,88 +47,110 @@ export const VoteModal: React.FC<VoteModalProps> = ({ isOpen, onClose, onSave, o
     onClose();
   };
 
+  const handleDeleteClick = () => {
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (editingVote) {
+      onDelete(editingVote.id);
+      setIsConfirmOpen(false);
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-slate-800 border border-slate-600 rounded-lg shadow-2xl w-full max-w-md animate-in fade-in zoom-in duration-200 my-auto">
-        <div className="flex justify-between items-center p-6 border-b border-slate-700">
-          <h3 className="text-xl font-bold text-white">
-            {editingVote ? 'Edit Vote' : 'Record New Vote'}
-          </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
-            <X className="w-6 h-6" />
-          </button>
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in duration-200">
+        <div className="bg-slate-800 border border-slate-600 rounded-lg shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 my-auto relative">
+          <div className="flex justify-between items-center p-6 border-b border-slate-700">
+            <h3 className="text-xl font-bold text-white">
+              {editingVote ? 'Edit Vote' : 'Record New Vote'}
+            </h3>
+            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div>
+              <label className="block text-slate-400 text-sm font-bold mb-2">Voter Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-3 md:py-2 text-white focus:outline-none focus:border-teal-500 text-base transition-colors"
+                placeholder="Enter full name"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-400 text-sm font-bold mb-2">Department</label>
+              <select
+                value={dept}
+                onChange={(e) => setDept(e.target.value as Department)}
+                className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-3 md:py-2 text-white focus:outline-none focus:border-teal-500 text-base transition-colors"
+              >
+                {DEPARTMENT_LIST.map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-slate-400 text-sm font-bold mb-2">Vote For</label>
+              <select
+                value={candidate}
+                onChange={(e) => setCandidate(e.target.value as Candidate)}
+                className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-3 md:py-2 text-white focus:outline-none focus:border-teal-500 text-base transition-colors"
+              >
+                {CANDIDATE_LIST.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex gap-3 pt-4 mt-4 border-t border-slate-700">
+              {editingVote && (
+                 <button
+                 type="button"
+                 onClick={handleDeleteClick}
+                 className="flex items-center justify-center px-4 py-3 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded font-semibold transition-colors border border-red-500/20 group"
+                 title="Delete Vote"
+               >
+                 <Trash2 className="w-5 h-5 md:w-4 md:h-4 group-hover:scale-110 transition-transform" />
+               </button>
+              )}
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-3 bg-slate-700 text-slate-200 rounded hover:bg-slate-600 font-semibold transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-3 bg-teal-600 text-white rounded hover:bg-teal-500 font-semibold transition-colors shadow-lg shadow-teal-900/20"
+              >
+                {editingVote ? 'Update Vote' : 'Submit Vote'}
+              </button>
+            </div>
+          </form>
         </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-slate-400 text-sm font-bold mb-2">Voter Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-3 md:py-2 text-white focus:outline-none focus:border-teal-500 text-base"
-              placeholder="Enter full name"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-slate-400 text-sm font-bold mb-2">Department</label>
-            <select
-              value={dept}
-              onChange={(e) => setDept(e.target.value as Department)}
-              className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-3 md:py-2 text-white focus:outline-none focus:border-teal-500 text-base"
-            >
-              {DEPARTMENT_LIST.map(d => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-slate-400 text-sm font-bold mb-2">Vote For</label>
-            <select
-              value={candidate}
-              onChange={(e) => setCandidate(e.target.value as Candidate)}
-              className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-3 md:py-2 text-white focus:outline-none focus:border-teal-500 text-base"
-            >
-              {CANDIDATE_LIST.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex gap-3 pt-4 mt-4 border-t border-slate-700">
-            {editingVote && (
-               <button
-               type="button"
-               onClick={() => {
-                   if(window.confirm('Are you sure you want to delete this vote?')) {
-                       onDelete(editingVote.id);
-                       onClose();
-                   }
-               }}
-               className="flex items-center justify-center px-4 py-3 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded font-semibold transition-colors border border-red-500/20"
-             >
-               <Trash2 className="w-5 h-5 md:w-4 md:h-4" />
-             </button>
-            )}
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-3 bg-slate-700 text-slate-200 rounded hover:bg-slate-600 font-semibold transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-3 bg-teal-600 text-white rounded hover:bg-teal-500 font-semibold transition-colors"
-            >
-              {editingVote ? 'Update Vote' : 'Submit Vote'}
-            </button>
-          </div>
-        </form>
       </div>
-    </div>
+
+      {/* Confirmation Dialog for Deletion */}
+      <ConfirmDialog 
+        isOpen={isConfirmOpen}
+        title="Delete Vote?"
+        message={`Are you sure you want to delete the vote for ${name}? This action cannot be undone.`}
+        confirmText="Yes, Delete"
+        cancelText="Cancel"
+        isDestructive={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsConfirmOpen(false)}
+      />
+    </>
   );
 };

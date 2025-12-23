@@ -12,10 +12,12 @@ import { Scale, Plus, Gavel, ExternalLink, Loader2, Lock, LogOut } from 'lucide-
 import { supabase } from './supabaseClient';
 import { ScrollReveal } from './components/ScrollReveal';
 import { ParallaxBackground } from './components/ParallaxBackground';
+import { useToast } from './components/ToastProvider';
 
 const App: React.FC = () => {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { showToast } = useToast();
   
   // Modal States
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
@@ -52,7 +54,7 @@ const App: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching votes:', error);
-      alert('Error connecting to database. Check console details.');
+      showToast('Error connecting to database', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -72,6 +74,7 @@ const App: React.FC = () => {
           .eq('id', id);
 
         if (error) throw error;
+        showToast('Vote updated successfully', 'success');
       } else {
         // Add new
         const { error } = await supabase
@@ -84,12 +87,13 @@ const App: React.FC = () => {
           }]);
 
         if (error) throw error;
+        showToast('New vote recorded successfully', 'success');
       }
       // Refresh list
       fetchVotes();
     } catch (error) {
       console.error('Error saving vote:', error);
-      alert('Failed to save vote.');
+      showToast('Failed to save vote', 'error');
     }
   };
 
@@ -104,10 +108,21 @@ const App: React.FC = () => {
       
       // Optimistic update
       setVotes(prev => prev.filter(v => v.id !== id));
+      showToast('Vote deleted permanently', 'success');
     } catch (error) {
       console.error('Error deleting vote:', error);
-      alert('Failed to delete vote.');
+      showToast('Failed to delete vote', 'error');
     }
+  };
+
+  const handleLogin = () => {
+    setIsAdmin(true);
+    showToast('Admin access granted', 'success');
+  };
+
+  const handleLogout = () => {
+    setIsAdmin(false);
+    showToast('Admin logged out', 'info');
   };
 
   const openAddModal = () => {
@@ -202,7 +217,7 @@ const App: React.FC = () => {
       <footer className="mt-8 md:mt-20 py-6 border-t border-slate-800/50 text-center mb-16 md:mb-0 z-10">
         {isAdmin ? (
              <button 
-                onClick={() => setIsAdmin(false)}
+                onClick={handleLogout}
                 className="text-slate-500 hover:text-red-400 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 mx-auto transition-colors p-4"
              >
                 <LogOut className="w-4 h-4" />
@@ -245,7 +260,7 @@ const App: React.FC = () => {
       <AdminLoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
-        onLogin={() => setIsAdmin(true)}
+        onLogin={handleLogin}
       />
     </div>
   );
