@@ -10,6 +10,8 @@ import { VoteModal } from './components/VoteModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { Scale, Plus, Gavel, ExternalLink, Loader2, Lock, LogOut } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { ScrollReveal } from './components/ScrollReveal';
+import { ParallaxBackground } from './components/ParallaxBackground';
 
 const App: React.FC = () => {
   const [votes, setVotes] = useState<Vote[]>([]);
@@ -129,6 +131,7 @@ const App: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-teal-500">
+        <ParallaxBackground />
         <Loader2 className="w-12 h-12 animate-spin mb-4" />
         <p className="text-slate-300 font-medium">Loading election data...</p>
       </div>
@@ -136,22 +139,26 @@ const App: React.FC = () => {
   }
 
   return (
-    // Compact padding on mobile (p-2)
-    <div className="min-h-screen p-2 md:p-8 text-slate-200 font-sans flex flex-col animate-fade-in-up">
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-10 w-full flex-grow pb-24 md:pb-0">
+    // Compact padding on mobile (p-2) and overflow-x-hidden for smooth animations
+    <div className="min-h-screen p-2 md:p-8 text-slate-200 font-sans flex flex-col relative overflow-x-hidden">
+      <ParallaxBackground />
+      
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-10 w-full flex-grow pb-24 md:pb-0 z-10">
         
         {/* Header */}
-        <div className="relative overflow-hidden glass-panel rounded-2xl p-4 md:p-8 text-center shadow-2xl ring-1 ring-white/5 group">
-           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500 opacity-90"></div>
-           {/* Header Shine Effect */}
-           <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-10 animate-shimmer" style={{ animationDuration: '3s' }} />
+        <ScrollReveal>
+            <div className="relative overflow-hidden glass-panel rounded-2xl p-4 md:p-8 text-center shadow-2xl ring-1 ring-white/5 group">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500 opacity-90"></div>
+            {/* Header Shine Effect */}
+            <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-10 animate-shimmer" style={{ animationDuration: '3s' }} />
 
-          <h1 className="text-lg sm:text-xl md:text-5xl font-black text-white tracking-tight flex flex-row items-center justify-center gap-2 md:gap-4 drop-shadow-lg leading-tight whitespace-nowrap z-10 relative">
-             <Scale className="w-5 h-5 md:w-12 md:h-12 text-teal-400 animate-pulse" />
-             <span className="bg-clip-text text-transparent bg-gradient-to-br from-white to-slate-400">Chief Justice Election</span>
-             <Gavel className="w-5 h-5 md:w-12 md:h-12 text-blue-500 transform -scale-x-100" />
-          </h1>
-        </div>
+            <h1 className="text-lg sm:text-xl md:text-5xl font-black text-white tracking-tight flex flex-row items-center justify-center gap-2 md:gap-4 drop-shadow-lg leading-tight whitespace-nowrap z-10 relative">
+                <Scale className="w-5 h-5 md:w-12 md:h-12 text-teal-400 animate-pulse" />
+                <span className="bg-clip-text text-transparent bg-gradient-to-br from-white to-slate-400">Chief Justice Election</span>
+                <Gavel className="w-5 h-5 md:w-12 md:h-12 text-blue-500 transform -scale-x-100" />
+            </h1>
+            </div>
+        </ScrollReveal>
 
         {/* Stats Row */}
         <StatsCards 
@@ -175,22 +182,24 @@ const App: React.FC = () => {
 
         {/* Discord Link - Only Visible to Admin */}
         {isAdmin && (
-          <div className="flex justify-center pt-8 border-t border-slate-800">
-              <a 
-                  href="discord://discord.com/channels/85441497989664768/1032678228512493619/1452750119471681699"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] text-white px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-[#5865F2]/25 hover:-translate-y-1 border border-[#5865F2]/50 text-sm md:text-base w-full md:w-auto justify-center group"
-              >
-                  <ExternalLink className="w-5 h-5 group-hover:rotate-45 transition-transform" />
-                  <span>View Latest Updates on Discord</span>
-              </a>
-          </div>
+          <ScrollReveal>
+            <div className="flex justify-center pt-8 border-t border-slate-800">
+                <a 
+                    href="discord://discord.com/channels/85441497989664768/1032678228512493619/1452750119471681699"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] text-white px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-[#5865F2]/25 hover:-translate-y-1 border border-[#5865F2]/50 text-sm md:text-base w-full md:w-auto justify-center group"
+                >
+                    <ExternalLink className="w-5 h-5 group-hover:rotate-45 transition-transform" />
+                    <span>View Latest Updates on Discord</span>
+                </a>
+            </div>
+          </ScrollReveal>
         )}
       </div>
 
       {/* Footer / Admin Login */}
-      <footer className="mt-8 md:mt-20 py-6 border-t border-slate-800/50 text-center mb-16 md:mb-0">
+      <footer className="mt-8 md:mt-20 py-6 border-t border-slate-800/50 text-center mb-16 md:mb-0 z-10">
         {isAdmin ? (
              <button 
                 onClick={() => setIsAdmin(false)}
