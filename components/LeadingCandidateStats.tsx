@@ -102,7 +102,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                             {leader === Candidate.BRITTANY_ANGEL && (
                                 <img src="https://cdn.7tv.app/emote/01KCA38N23VMWVX2GCTXZ46YDK/4x.webp" alt="Brittany" className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(20,184,166,0.5)]" />
                             )}
-                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-slate-400">{leader}</span>
+                            <span className="inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-slate-400 py-1">{leader}</span>
                         </h1>
                         
                         <div className="mt-3 space-y-2">

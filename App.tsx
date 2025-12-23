@@ -243,13 +243,13 @@ const App: React.FC = () => {
                               </div>
 
                               <div className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-4 text-center">
-                                  <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 tracking-tighter drop-shadow-xl leading-none">
+                                  <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 tracking-tighter drop-shadow-xl leading-tight py-2">
                                       CHIEF JUSTICE
                                   </h1>
                                   
                                   <span className="hidden md:block w-2 h-2 rounded-full bg-slate-200/80 shadow-[0_0_10px_rgba(255,255,255,0.3)]"></span>
 
-                                  <h2 className="text-xs md:text-2xl font-bold tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 drop-shadow-md">
+                                  <h2 className="text-xs md:text-2xl font-bold tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 drop-shadow-md pb-1">
                                       Election Results
                                   </h2>
                               </div>

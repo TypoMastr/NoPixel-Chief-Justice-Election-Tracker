@@ -86,7 +86,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
         <ScrollReveal delay={100}>
             <div className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl">
                 {/* Fixed: Added py-1 to prevent bg-clip-text clipping */}
-                <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-4 md:mb-8 flex items-center gap-3 border-b border-white/5 pb-4 py-1">
+                <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-4 md:mb-8 flex items-center gap-3 border-b border-white/5 pb-4 py-2">
                 📊 Candidate Results
                 </h2>
                 {/* Grid-cols-2 on mobile for side-by-side cards */}
@@ -111,8 +111,10 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                                 <div className="flex flex-col md:flex-row justify-between md:items-center mb-0 md:mb-4 gap-2 md:gap-0">
                                     <div className="flex items-center gap-2 md:gap-4">
                                         <div className="w-1 h-6 md:w-1.5 md:h-10 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)] flex-shrink-0 transition-all scale-y-110" style={{ backgroundColor: COLORS[item.name as Candidate] }}></div>
-                                        {/* Permanent highlighted text color */}
-                                        <h3 className="font-bold text-xs md:text-xl tracking-tight leading-snug pr-2 whitespace-normal break-words text-teal-50 transition-colors">{item.name}</h3>
+                                        {/* Permanent highlighted text color - Added inline-block and py-1 for gradient safety */}
+                                        <h3 className="font-bold text-xs md:text-xl tracking-tight leading-snug pr-2 whitespace-normal break-words text-teal-50 transition-colors py-1">
+                                          {item.name}
+                                        </h3>
                                     </div>
                                     <div className="flex flex-col md:flex-row items-end md:items-center gap-1 md:gap-3 pl-3 md:pl-0 self-end md:self-auto">
                                         <span className={`text-2xl md:text-4xl font-black tracking-tighter tabular-nums ${item.value > 0 ? 'text-white' : 'text-slate-600'}`}>
@@ -159,8 +161,8 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
       <div className="order-1 lg:order-2">
         <ScrollReveal delay={100}>
             <div ref={chartRef} className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl flex flex-col">
-                {/* Fixed: Added py-1 to prevent bg-clip-text clipping */}
-                <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-2 md:mb-6 flex items-center gap-3 border-b border-white/5 pb-4 py-1">
+                {/* Fixed: Added py-2 to prevent bg-clip-text clipping */}
+                <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-2 md:mb-6 flex items-center gap-3 border-b border-white/5 pb-4 py-2">
                 📈 Distribution
                 </h2>
                 <div className="flex-1 min-h-[250px] md:min-h-[400px] flex items-center justify-center relative -ml-4">
