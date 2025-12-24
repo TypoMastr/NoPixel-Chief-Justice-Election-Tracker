@@ -11,8 +11,16 @@ interface LeadingCandidateStatsProps {
   votes: Vote[];
 }
 
+const EMOTE_MAP: Record<string, string> = {
+  [Candidate.BRITTANY_ANGEL]: "https://cdn.7tv.app/emote/01KCA38N23VMWVX2GCTXZ46YDK/4x.webp",
+  [Candidate.NATHANIEL_GREYSON]: "https://cdn.7tv.app/emote/01G4ZGET1R0003SYTMXJ2SQCGP/4x.avif",
+  [Candidate.SEAN_DANIELSON]: "https://cdn.7tv.app/emote/01G1GEAAK800054T8VD7CWC8Y2/4x.avif",
+  [Candidate.ABSTAINED]: "https://cdn.7tv.app/emote/01G3F6FE2800067JFSTYNA74GE/4x.avif"
+};
+
 const CustomBarLabel = (props: any) => {
   const { x, y, width, height, value } = props;
+  if (value === 0) return null;
   return (
     <g>
       <defs>
@@ -41,19 +49,9 @@ const CustomBarLabel = (props: any) => {
 };
 
 export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ votes }) => {
-  const [chartVisible, setChartVisible] = useState(false);
   const [isGifModalOpen, setIsGifModalOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const chartRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      setChartVisible(entry.isIntersecting);
-    }, { threshold: 0.1 });
-    if (chartRef.current) observer.observe(chartRef.current);
-    return () => { if (chartRef.current) observer.disconnect(); };
-  }, []);
 
   const handleOpenModal = () => {
     setIsGifModalOpen(true);
@@ -69,48 +67,61 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
     }, 400); 
   };
 
+  if (votes.length === 0) return null;
+
   const activeVotes = votes.filter(v => v.candidate !== Candidate.ABSTAINED);
-  if (activeVotes.length === 0) return null;
-
-  const candidateCounts = activeVotes.reduce((acc, vote) => {
-    acc[vote.candidate] = (acc[vote.candidate] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  let leader = "";
-  let maxVotes = -1;
-  Object.entries(candidateCounts).forEach(([cand, count]) => {
-    if ((count as number) > maxVotes) {
-      maxVotes = count as number;
-      leader = cand;
-    }
-  });
-
-  if (!leader) return null;
-
-  const leaderVotes = activeVotes.filter(v => v.candidate === leader);
-  const totalLeaderVotes = leaderVotes.length;
-  const percentageOfValid = activeVotes.length > 0 ? (totalLeaderVotes / activeVotes.length) * 100 : 0;
-  const percentageOfTotal = votes.length > 0 ? (totalLeaderVotes / votes.length) * 100 : 0;
-
-  const breakdownData = DEPARTMENT_LIST.map(dept => {
-    const votesForLeaderInDept = leaderVotes.filter(v => v.department === dept);
-    const totalVotesInDept = votes.filter(v => v.department === dept).length;
+  
+  // Calculate candidate stats and FILTER to only show those with votes
+  const candidatesWithVotes = Object.values(Candidate).map(cand => {
+    const candVotes = votes.filter(v => v.candidate === cand);
     return {
-      name: dept,
-      votes: votesForLeaderInDept.length,
-      totalDept: totalVotesInDept,
-      percent: totalVotesInDept > 0 ? (votesForLeaderInDept.length / totalVotesInDept) * 100 : 0,
-      voterList: votesForLeaderInDept.map(v => v.voterName).sort()
+      candidate: cand,
+      count: candVotes.length,
+      votes: candVotes,
+      isAbstained: cand === Candidate.ABSTAINED
     };
-  });
+  }).filter(stat => stat.count > 0); // Re-applying the filter to hide zero-vote candidates
 
-  const leaderColor = COLORS[leader as Candidate] || '#cbd5e1';
+  // Sorting: Valid candidates by count descending, then Abstained always last
+  const sortedStats = [
+    ...candidatesWithVotes.filter(c => !c.isAbstained).sort((a, b) => b.count - a.count),
+    ...candidatesWithVotes.filter(c => c.isAbstained)
+  ];
+
+  const getRankBadge = (index: number, isAbstained: boolean) => {
+    if (isAbstained) return "Abstention Count";
+    if (index === 0) return "Current Leader";
+    if (index === 1) return "Runner Up";
+    if (index === 2) return "Third Place";
+    return `Rank #${index + 1}`;
+  };
 
   return (
-    <>
-      <ScrollReveal>
-          <div className="glass-panel rounded-2xl p-5 md:p-8 shadow-2xl mb-4 md:mb-8 relative overflow-hidden ring-1 ring-white/10">
+    <div className="space-y-8 mb-8">
+      {sortedStats.map((stat, index) => {
+        const { candidate, count, votes: candVotes, isAbstained } = stat;
+        const leaderColor = COLORS[candidate as Candidate] || '#cbd5e1';
+        const percentageOfValid = activeVotes.length > 0 ? (count / activeVotes.length) * 100 : 0;
+        const percentageOfTotal = votes.length > 0 ? (count / votes.length) * 100 : 0;
+        
+        const breakdownData = DEPARTMENT_LIST.map(dept => {
+          const votesForInDept = candVotes.filter(v => v.department === dept);
+          const totalVotesInDept = votes.filter(v => v.department === dept).length;
+          return {
+            name: dept,
+            votes: votesForInDept.length,
+            totalDept: totalVotesInDept,
+            percent: totalVotesInDept > 0 ? (votesForInDept.length / totalVotesInDept) * 100 : 0,
+            voterList: votesForInDept.map(v => v.voterName).sort()
+          };
+        });
+
+        // Easter egg logic: only 1st place Brittany Angel card triggers the GIF modal
+        const isEasterEggTarget = index === 0 && candidate === Candidate.BRITTANY_ANGEL;
+
+        return (
+          <ScrollReveal key={candidate}>
+            <div className="glass-panel rounded-2xl p-5 md:p-8 shadow-2xl relative overflow-hidden ring-1 ring-white/10">
               <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-b from-white to-transparent opacity-[0.03] rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
 
               <div className="relative z-10">
@@ -118,43 +129,42 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                       <div className="flex flex-col">
                           <div className="flex items-center gap-2 mb-3">
                               <button 
-                                onClick={handleOpenModal}
-                                className="bg-teal-500/20 text-teal-400 border border-teal-500/40 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(20,184,166,0.2)] animate-pulse hover:animate-none hover:bg-teal-400/30 hover:text-white hover:border-teal-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(20,184,166,0.4)] hover:brightness-125 transition-all cursor-pointer outline-none flex items-center justify-center group/leader"
+                                onClick={isEasterEggTarget ? handleOpenModal : undefined}
+                                className={`bg-teal-500/20 text-teal-400 border border-teal-500/40 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(20,184,166,0.2)] ${isEasterEggTarget ? 'animate-pulse hover:animate-none hover:bg-teal-400/30 hover:text-white hover:border-teal-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(20,184,166,0.4)] hover:brightness-125 cursor-pointer' : 'cursor-default'} outline-none flex items-center justify-center transition-all`}
                               >
-                                <span>Current Leader</span>
+                                <span>{getRankBadge(index, isAbstained)}</span>
                               </button>
                           </div>
-                          <h1 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md flex items-center gap-3 flex-wrap pb-2">
-                              {leader === Candidate.BRITTANY_ANGEL && (
-                                  <button 
-                                    onClick={handleOpenModal}
-                                    className="focus:outline-none hover:scale-110 transition-transform active:scale-95 cursor-pointer relative group/emote"
-                                    title="Harness Power"
-                                  >
-                                    <img 
-                                      src="https://cdn.7tv.app/emote/01KCA38N23VMWVX2GCTXZ46YDK/4x.webp" 
-                                      alt="Brittany" 
-                                      className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(20,184,166,0.5)]"
-                                      loading="eager"
-                                      decoding="async"
-                                    />
-                                    <div className="absolute inset-0 bg-teal-500/10 rounded-full blur-md opacity-0 group-hover/emote:opacity-100 transition-opacity"></div>
-                                  </button>
-                              )}
-                              <span className="inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-slate-400 py-1">{leader}</span>
+                          <h1 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight flex items-center gap-3 flex-wrap pb-2">
+                              <button 
+                                onClick={isEasterEggTarget ? handleOpenModal : undefined}
+                                className={`focus:outline-none transition-transform ${isEasterEggTarget ? 'hover:scale-110 active:scale-95 cursor-pointer' : 'cursor-default'} relative group/emote`}
+                                title={isEasterEggTarget ? "Harness Power" : undefined}
+                              >
+                                <img 
+                                  src={EMOTE_MAP[candidate]} 
+                                  alt={candidate} 
+                                  className="w-10 h-10 md:w-16 md:h-16 object-contain"
+                                  loading="eager"
+                                  decoding="async"
+                                />
+                              </button>
+                              <span className="inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-slate-400 py-1">{candidate}</span>
                           </h1>
                           
                           <div className="mt-3 space-y-2">
-                              <div className="text-sm md:text-lg font-bold text-slate-200 flex items-center gap-3">
-                                  <span className="relative flex h-3 w-3 flex-shrink-0">
-                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                                  </span>
-                                  <span>Holding <span className="text-white font-black text-lg md:text-2xl tabular-nums"><CountUp end={percentageOfValid} decimals={1} suffix="%" /></span> of valid votes</span>
-                              </div>
+                              {!isAbstained && (
+                                <div className="text-sm md:text-lg font-bold text-slate-200 flex items-center gap-3">
+                                    <span className="relative flex h-3 w-3 flex-shrink-0">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                                    </span>
+                                    <span>Holding <span className="text-white font-black text-lg md:text-2xl tabular-nums"><CountUp end={percentageOfValid} decimals={1} suffix="%" /></span> of valid votes</span>
+                                </div>
+                              )}
                               <div className="text-xs md:text-sm font-bold text-slate-400 flex items-center gap-3 pl-0.5">
                                   <span className="w-2 h-2 rounded-full bg-slate-600 flex-shrink-0"></span>
-                                  <span>Holding <span className="text-slate-300 font-black tabular-nums"><CountUp end={percentageOfTotal} decimals={1} suffix="%" /></span> of total votes</span>
+                                  <span>Representing <span className="text-slate-300 font-black tabular-nums"><CountUp end={percentageOfTotal} decimals={1} suffix="%" /></span> of total votes</span>
                               </div>
                           </div>
                       </div>
@@ -162,25 +172,25 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                       <div className="bg-slate-900/60 px-6 py-4 md:px-8 md:py-6 rounded-2xl border border-white/10 text-center w-full md:w-auto md:min-w-[200px] shadow-xl flex flex-row md:flex-col justify-between md:justify-center items-center backdrop-blur-md">
                           <p className="text-slate-400 text-xs font-black uppercase tracking-[0.2em] mb-0 md:mb-2">Total Votes</p>
                           <p className="text-4xl md:text-6xl font-black tracking-tighter tabular-nums drop-shadow-md" style={{ color: leaderColor }}>
-                              <CountUp end={totalLeaderVotes} />
+                              <CountUp end={count} />
                           </p>
                       </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-                      {/* Using conditional rendering to avoid Recharts 0-width warning on mobile where it's hidden */}
-                      <div ref={chartRef} className="h-[250px] md:h-[320px] w-full pb-4 hidden md:block">
+                      <div className="h-[250px] md:h-[320px] w-full pb-4 hidden md:block">
                           <h3 className="text-slate-100 font-black mb-6 text-sm uppercase tracking-widest flex items-center gap-3 border-b border-white/10 pb-3">
                               <span className="w-8 h-[4px] bg-slate-400 rounded-full"></span> Department Votes
                           </h3>
                           <div className="w-full h-full min-h-[250px]">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart key={chartVisible ? 'visible' : 'hidden'} data={breakdownData} layout="vertical" margin={{ left: 0, right: 40, bottom: 20 }}>
+                                <BarChart data={breakdownData} layout="vertical" margin={{ left: 0, right: 40, bottom: 20 }}>
                                     <XAxis type="number" hide />
                                     <YAxis dataKey="name" type="category" width={70} tick={{ fill: '#f1f5f9', fontSize: 13, fontWeight: 900 }} axisLine={false} tickLine={false} />
                                     <Tooltip cursor={false} content={({ active, payload }) => {
                                       if (active && payload && payload.length) {
                                         const data = payload[0].payload;
+                                        if (data.votes === 0) return null;
                                         return (
                                           <div className="bg-slate-900/95 border border-white/20 p-4 rounded-xl shadow-2xl backdrop-blur-md min-w-[220px]">
                                             <p className="font-black text-white text-sm uppercase tracking-widest mb-2 border-b border-white/10 pb-2">{data.name}</p>
@@ -197,7 +207,6 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                       }
                                       return null;
                                     }} />
-                                    {/* background removed for cleaner look as per user request */}
                                     <Bar dataKey="votes" radius={6} barSize={28} isAnimationActive={true} animationDuration={1000}>
                                         {breakdownData.map((entry, index) => <Cell key={`cell-${index}`} fill={leaderColor} />)}
                                         <LabelList dataKey="votes" content={<CustomBarLabel />} />
@@ -237,34 +246,31 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                       </div>
                   </div>
               </div>
-          </div>
-      </ScrollReveal>
+            </div>
+          </ScrollReveal>
+        );
+      })}
 
-      {/* Floating High-Impact Power Modal with intensified blur and integrated close button */}
+      {/* Easter Egg Modal */}
       {isGifModalOpen && (
         <div 
           className={`fixed inset-0 z-[999] flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden transition-all duration-500 ease-in-out ${isClosing ? 'opacity-0 scale-110 pointer-events-none' : 'opacity-100'}`}
           style={{ top: 0, left: 0, right: 0, bottom: 0 }}
           onClick={handleCloseModal}
         >
-          {/* Complete background blur coverage including status bar and all corners */}
           <div className="fixed inset-0 bg-black/80 backdrop-blur-[40px] z-[-1]" />
           
           <div 
             className={`relative w-full max-w-[95vw] md:max-w-4xl transform-gpu transition-all duration-500 ease-out flex flex-col items-center gap-6 md:gap-8 ${isClosing ? 'scale-90 opacity-0 blur-xl' : 'scale-100 opacity-100'}`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Caption - Styled with teal/green theme to match site visual identity */}
             <div className="w-full flex justify-center px-4">
                <span className="text-teal-400 text-lg sm:text-2xl md:text-4xl font-black uppercase tracking-[0.2em] sm:tracking-[0.4em] drop-shadow-[0_0_25px_rgba(20,184,166,0.4)] px-6 sm:px-10 py-2 sm:py-4 rounded-full border border-teal-500/20 bg-teal-500/5 backdrop-blur-md text-center inline-block max-w-full leading-tight">
                  Preliminary Results
                </span>
             </div>
 
-            {/* The GIF Shield Wrapper with Integrated Close Button and fixed aspect frame to prevent overlap shifts */}
             <div className="relative w-full aspect-square md:aspect-video max-h-[60vh] md:max-h-[70vh] rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-[0_40px_120px_-20px_rgba(0,0,0,1)] border-4 md:border-8 border-white/10 ring-1 ring-white/5 bg-slate-900/60 flex items-center justify-center">
-              
-              {/* Repositioned Close Button - Inside the border area, optimized sizing for mobile and fixed position */}
               <button 
                 onClick={handleCloseModal}
                 className="absolute top-4 right-4 md:top-8 md:right-8 p-2 md:p-3 bg-black/80 hover:bg-white text-white hover:text-black rounded-full transition-all backdrop-blur-xl z-30 border border-white/20 active:scale-90 shadow-[0_10px_30px_rgba(0,0,0,0.6)] opacity-100 ring-2 ring-white/10"
@@ -280,10 +286,8 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                 onLoad={() => setIsImageLoaded(true)}
               />
               
-              {/* Overlay glow for aesthetic depth */}
               <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-teal-500/10 via-transparent to-white/5 opacity-40"></div>
               
-              {/* Loading Spinner within the frame to avoid overlap jitter or layout jumping */}
               {!isImageLoaded && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20">
                   <div className="p-6 md:p-8 rounded-full bg-slate-900/90 backdrop-blur-2xl border border-white/10 shadow-2xl animate-pulse flex items-center justify-center">
@@ -296,6 +300,6 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
