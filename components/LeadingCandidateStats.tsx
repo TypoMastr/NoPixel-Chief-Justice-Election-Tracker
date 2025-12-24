@@ -13,9 +13,9 @@ interface LeadingCandidateStatsProps {
 
 const EMOTE_MAP: Record<string, string> = {
   [Candidate.BRITTANY_ANGEL]: "https://cdn.7tv.app/emote/01KCA38N23VMWVX2GCTXZ46YDK/4x.webp",
-  [Candidate.NATHANIEL_GREYSON]: "https://cdn.7tv.app/emote/01G4ZGET1R0003SYTMXJ2SQCGP/4x.avif",
-  [Candidate.SEAN_DANIELSON]: "https://cdn.7tv.app/emote/01G1GEAAK800054T8VD7CWC8Y2/4x.avif",
-  [Candidate.ABSTAINED]: "https://cdn.7tv.app/emote/01G3F6FE2800067JFSTYNA74GE/4x.avif"
+  [Candidate.NATHANIEL_GREYSON]: "https://cdn.7tv.app/emote/01G4ZGET1R0003SYTMXJ2SQCGP/4x.gif",
+  [Candidate.SEAN_DANIELSON]: "https://cdn.7tv.app/emote/01G1GEAAK800054T8VD7CWC8Y2/4x.webp",
+  [Candidate.ABSTAINED]: "https://cdn.7tv.app/emote/01G3F6FE2800067JFSTYNA74GE/4x.gif"
 };
 
 const CustomBarLabel = (props: any) => {
@@ -111,6 +111,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
             name: dept,
             votes: votesForInDept.length,
             totalDept: totalVotesInDept,
+            // Fix: Use totalVotesInDept instead of undefined totalDept variable
             percent: totalVotesInDept > 0 ? (votesForInDept.length / totalVotesInDept) * 100 : 0,
             voterList: votesForInDept.map(v => v.voterName).sort()
           };
