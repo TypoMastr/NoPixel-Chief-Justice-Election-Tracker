@@ -5,6 +5,7 @@ import { COLORS, DEPARTMENT_LIST } from '../constants';
 import { ScrollReveal } from './ScrollReveal';
 import { CountUp } from './CountUp';
 import { AnimatedBar } from './AnimatedBar';
+import { X, Loader2 } from 'lucide-react';
 
 interface LeadingCandidateStatsProps {
   votes: Vote[];
@@ -41,13 +42,32 @@ const CustomBarLabel = (props: any) => {
 
 export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ votes }) => {
   const [chartVisible, setChartVisible] = useState(false);
+  const [isGifModalOpen, setIsGifModalOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => setChartVisible(entry.isIntersecting), { threshold: 0.1 });
+    const observer = new IntersectionObserver(([entry]) => {
+      setChartVisible(entry.isIntersecting);
+    }, { threshold: 0.1 });
     if (chartRef.current) observer.observe(chartRef.current);
     return () => { if (chartRef.current) observer.disconnect(); };
   }, []);
+
+  const handleOpenModal = () => {
+    setIsGifModalOpen(true);
+    setIsClosing(false);
+    setIsImageLoaded(false);
+  };
+
+  const handleCloseModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsGifModalOpen(false);
+      setIsClosing(false);
+    }, 400); 
+  };
 
   const activeVotes = votes.filter(v => v.candidate !== Candidate.ABSTAINED);
   if (activeVotes.length === 0) return null;
@@ -88,113 +108,194 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
   const leaderColor = COLORS[leader as Candidate] || '#cbd5e1';
 
   return (
-    <ScrollReveal>
-        <div className="glass-panel rounded-2xl p-5 md:p-8 shadow-2xl mb-4 md:mb-8 relative overflow-hidden ring-1 ring-white/10">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-b from-white to-transparent opacity-[0.03] rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+    <>
+      <ScrollReveal>
+          <div className="glass-panel rounded-2xl p-5 md:p-8 shadow-2xl mb-4 md:mb-8 relative overflow-hidden ring-1 ring-white/10">
+              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-b from-white to-transparent opacity-[0.03] rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
 
-            <div className="relative z-10">
-                <div className="flex flex-col md:flex-row md:items-start justify-between mb-6 md:mb-8 gap-6 border-b border-white/10 pb-6">
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-2 mb-3">
-                            <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-[0.15em] shadow-[0_0_15px_rgba(234,179,8,0.2)] animate-pulse">Current Leader</span>
-                        </div>
-                        <h1 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md flex items-center gap-3 flex-wrap pb-2">
-                            {leader === Candidate.BRITTANY_ANGEL && (
-                                <img src="https://cdn.7tv.app/emote/01KCA38N23VMWVX2GCTXZ46YDK/4x.webp" alt="Brittany" className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(20,184,166,0.5)]" />
-                            )}
-                            <span className="inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-slate-400 py-1">{leader}</span>
-                        </h1>
-                        
-                        <div className="mt-3 space-y-2">
-                            <div className="text-sm md:text-lg font-bold text-slate-200 flex items-center gap-3">
-                                <span className="relative flex h-3 w-3 flex-shrink-0">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                                </span>
-                                <span>Holding <span className="text-white font-black text-lg md:text-2xl tabular-nums"><CountUp end={percentageOfValid} decimals={1} suffix="%" /></span> of valid votes</span>
-                            </div>
-                            <div className="text-xs md:text-sm font-bold text-slate-400 flex items-center gap-3 pl-0.5">
-                                <span className="w-2 h-2 rounded-full bg-slate-600 flex-shrink-0"></span>
-                                <span>Holding <span className="text-slate-300 font-black tabular-nums"><CountUp end={percentageOfTotal} decimals={1} suffix="%" /></span> of total votes</span>
-                            </div>
-                        </div>
-                    </div>
+              <div className="relative z-10">
+                  <div className="flex flex-col md:flex-row md:items-start justify-between mb-6 md:mb-8 gap-6 border-b border-white/10 pb-6">
+                      <div className="flex flex-col">
+                          <div className="flex items-center gap-2 mb-3">
+                              <button 
+                                onClick={handleOpenModal}
+                                className="bg-teal-500/20 text-teal-400 border border-teal-500/30 px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-[0.15em] shadow-[0_0_15px_rgba(20,184,166,0.2)] animate-pulse hover:bg-teal-500/40 hover:scale-105 transition-all cursor-pointer outline-none"
+                              >
+                                Current Leader
+                              </button>
+                          </div>
+                          <h1 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md flex items-center gap-3 flex-wrap pb-2">
+                              {leader === Candidate.BRITTANY_ANGEL && (
+                                  <button 
+                                    onClick={handleOpenModal}
+                                    className="focus:outline-none hover:scale-110 transition-transform active:scale-95 cursor-pointer relative group/emote"
+                                    title="Harness Power"
+                                  >
+                                    <img 
+                                      src="https://cdn.7tv.app/emote/01KCA38N23VMWVX2GCTXZ46YDK/4x.webp" 
+                                      alt="Brittany" 
+                                      className="w-10 h-10 md:w-16 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(20,184,166,0.5)]"
+                                      loading="eager"
+                                      decoding="async"
+                                    />
+                                    <div className="absolute inset-0 bg-teal-500/10 rounded-full blur-md opacity-0 group-hover/emote:opacity-100 transition-opacity"></div>
+                                  </button>
+                              )}
+                              <span className="inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-slate-400 py-1">{leader}</span>
+                          </h1>
+                          
+                          <div className="mt-3 space-y-2">
+                              <div className="text-sm md:text-lg font-bold text-slate-200 flex items-center gap-3">
+                                  <span className="relative flex h-3 w-3 flex-shrink-0">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                                  </span>
+                                  <span>Holding <span className="text-white font-black text-lg md:text-2xl tabular-nums"><CountUp end={percentageOfValid} decimals={1} suffix="%" /></span> of valid votes</span>
+                              </div>
+                              <div className="text-xs md:text-sm font-bold text-slate-400 flex items-center gap-3 pl-0.5">
+                                  <span className="w-2 h-2 rounded-full bg-slate-600 flex-shrink-0"></span>
+                                  <span>Holding <span className="text-slate-300 font-black tabular-nums"><CountUp end={percentageOfTotal} decimals={1} suffix="%" /></span> of total votes</span>
+                              </div>
+                          </div>
+                      </div>
 
-                    <div className="bg-slate-900/60 px-6 py-4 md:px-8 md:py-6 rounded-2xl border border-white/10 text-center w-full md:w-auto md:min-w-[200px] shadow-xl flex flex-row md:flex-col justify-between md:justify-center items-center backdrop-blur-md">
-                        <p className="text-slate-400 text-xs font-black uppercase tracking-[0.2em] mb-0 md:mb-2">Total Votes</p>
-                        <p className="text-4xl md:text-6xl font-black tracking-tighter tabular-nums drop-shadow-md" style={{ color: leaderColor }}>
-                            <CountUp end={totalLeaderVotes} />
-                        </p>
-                    </div>
-                </div>
+                      <div className="bg-slate-900/60 px-6 py-4 md:px-8 md:py-6 rounded-2xl border border-white/10 text-center w-full md:w-auto md:min-w-[200px] shadow-xl flex flex-row md:flex-col justify-between md:justify-center items-center backdrop-blur-md">
+                          <p className="text-slate-400 text-xs font-black uppercase tracking-[0.2em] mb-0 md:mb-2">Total Votes</p>
+                          <p className="text-4xl md:text-6xl font-black tracking-tighter tabular-nums drop-shadow-md" style={{ color: leaderColor }}>
+                              <CountUp end={totalLeaderVotes} />
+                          </p>
+                      </div>
+                  </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-                    <div ref={chartRef} className="h-[250px] md:h-[320px] w-full pb-4 hidden md:block">
-                        <h3 className="text-slate-100 font-black mb-6 text-sm uppercase tracking-widest flex items-center gap-3 border-b border-white/10 pb-3">
-                            <span className="w-8 h-[4px] bg-slate-400 rounded-full"></span> Department Votes
-                        </h3>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart key={chartVisible ? 'visible' : 'hidden'} data={breakdownData} layout="vertical" margin={{ left: 0, right: 40, bottom: 20 }}>
-                                <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" width={70} tick={{ fill: '#f1f5f9', fontSize: 13, fontWeight: 900 }} axisLine={false} tickLine={false} />
-                                <Tooltip cursor={false} content={({ active, payload }) => {
-                                  if (active && payload && payload.length) {
-                                    const data = payload[0].payload;
-                                    return (
-                                      <div className="bg-slate-900/95 border border-white/20 p-4 rounded-xl shadow-2xl backdrop-blur-md min-w-[220px]">
-                                        <p className="font-black text-white text-sm uppercase tracking-widest mb-2 border-b border-white/10 pb-2">{data.name}</p>
-                                        <div className="max-h-[200px] overflow-y-auto custom-scrollbar space-y-1.5">
-                                          {data.voterList.map((name: string, idx: number) => (
-                                            <div key={idx} className="text-xs text-slate-200 font-bold flex items-center gap-2">
-                                              <div className="w-1.5 h-1.5 bg-teal-500 rounded-full flex-shrink-0 shadow-[0_0_5px_rgba(20,184,166,0.5)]"></div>
-                                              {name}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+                      {/* Using conditional rendering to avoid Recharts 0-width warning on mobile where it's hidden */}
+                      <div ref={chartRef} className="h-[250px] md:h-[320px] w-full pb-4 hidden md:block">
+                          <h3 className="text-slate-100 font-black mb-6 text-sm uppercase tracking-widest flex items-center gap-3 border-b border-white/10 pb-3">
+                              <span className="w-8 h-[4px] bg-slate-400 rounded-full"></span> Department Votes
+                          </h3>
+                          <div className="w-full h-full min-h-[250px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart key={chartVisible ? 'visible' : 'hidden'} data={breakdownData} layout="vertical" margin={{ left: 0, right: 40, bottom: 20 }}>
+                                    <XAxis type="number" hide />
+                                    <YAxis dataKey="name" type="category" width={70} tick={{ fill: '#f1f5f9', fontSize: 13, fontWeight: 900 }} axisLine={false} tickLine={false} />
+                                    <Tooltip cursor={false} content={({ active, payload }) => {
+                                      if (active && payload && payload.length) {
+                                        const data = payload[0].payload;
+                                        return (
+                                          <div className="bg-slate-900/95 border border-white/20 p-4 rounded-xl shadow-2xl backdrop-blur-md min-w-[220px]">
+                                            <p className="font-black text-white text-sm uppercase tracking-widest mb-2 border-b border-white/10 pb-2">{data.name}</p>
+                                            <div className="max-h-[200px] overflow-y-auto custom-scrollbar space-y-1.5">
+                                              {data.voterList.map((name: string, idx: number) => (
+                                                <div key={idx} className="text-xs text-slate-200 font-bold flex items-center gap-2">
+                                                  <div className="w-1.5 h-1.5 bg-teal-500 rounded-full flex-shrink-0 shadow-[0_0_5px_rgba(20,184,166,0.5)]"></div>
+                                                  {name}
+                                                </div>
+                                              ))}
                                             </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    );
-                                  }
-                                  return null;
-                                }} />
-                                <Bar dataKey="votes" radius={6} barSize={28} background={{ fill: 'rgba(30, 41, 59, 0.4)', radius: 6 }} isAnimationActive={true} animationDuration={1000}>
-                                    {breakdownData.map((entry, index) => <Cell key={`cell-${index}`} fill={leaderColor} />)}
-                                    <LabelList dataKey="votes" content={<CustomBarLabel />} />
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
+                                          </div>
+                                        );
+                                      }
+                                      return null;
+                                    }} />
+                                    {/* background removed for cleaner look as per user request */}
+                                    <Bar dataKey="votes" radius={6} barSize={28} isAnimationActive={true} animationDuration={1000}>
+                                        {breakdownData.map((entry, index) => <Cell key={`cell-${index}`} fill={leaderColor} />)}
+                                        <LabelList dataKey="votes" content={<CustomBarLabel />} />
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                      </div>
 
-                    <div>
-                        <h3 className="text-slate-100 font-black mb-5 md:mb-6 text-xs md:text-sm uppercase tracking-widest flex items-center gap-3 border-b border-white/10 pb-3">
-                            <span className="w-8 h-[4px] bg-slate-400 rounded-full"></span> Quick Breakdown
-                        </h3>
-                        <div className="grid grid-cols-2 gap-3">
-                            {breakdownData.map((d, i) => (
-                                <ScrollReveal key={d.name} delay={i * 50} width="100%">
-                                    <div className="flex flex-col p-4 rounded-2xl bg-slate-800/80 border border-white/10 transition-all duration-300 group relative overflow-hidden h-full shadow-lg">
-                                        <div className="absolute top-0 left-0 h-1.5 bg-slate-900 w-full">
-                                            <AnimatedBar targetWidth={`${d.percent}%`} backgroundColor={leaderColor} className="h-full" delay={100 + (i * 50)} />
-                                        </div>
-                                        <div className="flex justify-between items-center mb-2 mt-2">
-                                            <span className="text-xs font-black text-white uppercase tracking-wider">{d.name}</span>
-                                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full border bg-green-500/10 text-green-400 border-green-500/30 tabular-nums">
-                                                <CountUp end={d.percent} decimals={0} suffix="%" />
-                                            </span>
-                                        </div>
-                                        <div className="flex items-baseline gap-1.5">
-                                            <span className="text-2xl font-black text-white tabular-nums tracking-tighter">
-                                                <CountUp end={d.votes} />
-                                            </span>
-                                            <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">of <CountUp end={d.totalDept} /></span>
-                                        </div>
-                                    </div>
-                                </ScrollReveal>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+                      <div>
+                          <h3 className="text-slate-100 font-black mb-5 md:mb-6 text-xs md:text-sm uppercase tracking-widest flex items-center gap-3 border-b border-white/10 pb-3">
+                              <span className="w-8 h-[4px] bg-slate-400 rounded-full"></span> Quick Breakdown
+                          </h3>
+                          <div className="grid grid-cols-2 gap-3">
+                              {breakdownData.map((d, i) => (
+                                  <ScrollReveal key={d.name} delay={i * 50} width="100%">
+                                      <div className="flex flex-col p-4 rounded-2xl bg-slate-800/80 border border-white/10 transition-all duration-300 group relative overflow-hidden h-full shadow-lg">
+                                          <div className="absolute top-0 left-0 h-1.5 bg-slate-900 w-full">
+                                              <AnimatedBar targetWidth={`${d.percent}%`} backgroundColor={leaderColor} className="h-full" delay={100 + (i * 50)} />
+                                          </div>
+                                          <div className="flex justify-between items-center mb-2 mt-2">
+                                              <span className="text-xs font-black text-white uppercase tracking-wider">{d.name}</span>
+                                              <span className="text-[10px] font-black px-2 py-0.5 rounded-full border bg-green-500/10 text-green-400 border-green-500/30 tabular-nums">
+                                                  <CountUp end={d.percent} decimals={0} suffix="%" />
+                                              </span>
+                                          </div>
+                                          <div className="flex items-baseline gap-1.5">
+                                              <span className="text-2xl font-black text-white tabular-nums tracking-tighter">
+                                                  <CountUp end={d.votes} />
+                                              </span>
+                                              <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">of <CountUp end={d.totalDept} /></span>
+                                          </div>
+                                      </div>
+                                  </ScrollReveal>
+                              ))}
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </ScrollReveal>
+
+      {/* Floating High-Impact Power Modal with intensified blur and integrated close button */}
+      {isGifModalOpen && (
+        <div 
+          className={`fixed inset-0 z-[999] flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden transition-all duration-500 ease-in-out ${isClosing ? 'opacity-0 scale-110 pointer-events-none' : 'opacity-100'}`}
+          style={{ top: 0, left: 0, right: 0, bottom: 0 }}
+          onClick={handleCloseModal}
+        >
+          {/* Complete background blur coverage including status bar and all corners */}
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-[40px] z-[-1]" />
+          
+          <div 
+            className={`relative w-full max-w-[95vw] md:max-w-4xl transform-gpu transition-all duration-500 ease-out flex flex-col items-center gap-6 md:gap-8 ${isClosing ? 'scale-90 opacity-0 blur-xl' : 'scale-100 opacity-100'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Caption - Styled with teal/green theme to match site visual identity */}
+            <div className="w-full flex justify-center px-4">
+               <span className="text-teal-400 text-lg sm:text-2xl md:text-4xl font-black uppercase tracking-[0.2em] sm:tracking-[0.4em] drop-shadow-[0_0_25px_rgba(20,184,166,0.4)] px-6 sm:px-10 py-2 sm:py-4 rounded-full border border-teal-500/20 bg-teal-500/5 backdrop-blur-md text-center inline-block max-w-full leading-tight">
+                 Preliminary Results
+               </span>
             </div>
+
+            {/* The GIF Shield Wrapper with Integrated Close Button and fixed aspect frame to prevent overlap shifts */}
+            <div className="relative w-full aspect-square md:aspect-video max-h-[60vh] md:max-h-[70vh] rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-[0_40px_120px_-20px_rgba(0,0,0,1)] border-4 md:border-8 border-white/10 ring-1 ring-white/5 bg-slate-900/60 flex items-center justify-center">
+              
+              {/* Repositioned Close Button - Inside the border area, optimized sizing for mobile and fixed position */}
+              <button 
+                onClick={handleCloseModal}
+                className="absolute top-4 right-4 md:top-8 md:right-8 p-2 md:p-3 bg-black/80 hover:bg-white text-white hover:text-black rounded-full transition-all backdrop-blur-xl z-30 border border-white/20 active:scale-90 shadow-[0_10px_30px_rgba(0,0,0,0.6)] opacity-100 ring-2 ring-white/10"
+                aria-label="Close Power View"
+              >
+                <X className="w-5 h-5 md:w-8 md:h-8" />
+              </button>
+
+              <img 
+                src="https://media1.tenor.com/m/77jgUjNcuGMAAAAC/girl-power-beat-up.gif" 
+                alt="Leadership Presence" 
+                className={`block w-full h-full object-cover md:object-contain transition-all duration-1000 ease-out ${isImageLoaded ? 'scale-100 opacity-100 blur-0' : 'scale-125 opacity-0 blur-2xl'}`}
+                onLoad={() => setIsImageLoaded(true)}
+              />
+              
+              {/* Overlay glow for aesthetic depth */}
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-teal-500/10 via-transparent to-white/5 opacity-40"></div>
+              
+              {/* Loading Spinner within the frame to avoid overlap jitter or layout jumping */}
+              {!isImageLoaded && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20">
+                  <div className="p-6 md:p-8 rounded-full bg-slate-900/90 backdrop-blur-2xl border border-white/10 shadow-2xl animate-pulse flex items-center justify-center">
+                    <Loader2 className="w-10 h-10 md:w-16 md:h-16 text-teal-400 animate-spin" />
+                  </div>
+                  <p className="mt-6 text-[10px] md:text-sm font-black text-teal-400 uppercase tracking-[0.5em] animate-pulse text-center">Manifesting Power...</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-    </ScrollReveal>
+      )}
+    </>
   );
 };
