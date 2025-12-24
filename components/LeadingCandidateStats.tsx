@@ -119,9 +119,9 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                           <div className="flex items-center gap-2 mb-3">
                               <button 
                                 onClick={handleOpenModal}
-                                className="bg-teal-500/20 text-teal-400 border border-teal-500/30 px-2.5 py-1 rounded text-[11px] font-black uppercase tracking-[0.15em] shadow-[0_0_15px_rgba(20,184,166,0.2)] animate-pulse hover:bg-teal-500/40 hover:scale-105 transition-all cursor-pointer outline-none"
+                                className="bg-teal-500/20 text-teal-400 border border-teal-500/40 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(20,184,166,0.2)] animate-pulse hover:animate-none hover:bg-teal-400/30 hover:text-white hover:border-teal-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(20,184,166,0.4)] hover:brightness-125 transition-all cursor-pointer outline-none flex items-center justify-center group/leader"
                               >
-                                Current Leader
+                                <span>Current Leader</span>
                               </button>
                           </div>
                           <h1 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md flex items-center gap-3 flex-wrap pb-2">
