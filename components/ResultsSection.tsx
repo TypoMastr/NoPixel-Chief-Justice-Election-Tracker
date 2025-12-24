@@ -5,17 +5,44 @@ import { COLORS, ACTIVE_CANDIDATES } from '../constants';
 import { ScrollReveal } from './ScrollReveal';
 import { CountUp } from './CountUp';
 import { AnimatedBar } from './AnimatedBar';
+import { X, Loader2, Users } from 'lucide-react';
 
 interface ResultsSectionProps {
   votes: Vote[];
 }
 
+const EASTER_EGGS: Record<string, { gif: string; title: string }> = {
+  [Candidate.BRITTANY_ANGEL]: {
+    gif: "https://media1.tenor.com/m/77jgUjNcuGMAAAAC/girl-power-beat-up.gif",
+    title: "Leadership Presence"
+  },
+  [Candidate.ABSTAINED]: {
+    gif: "https://media1.tenor.com/m/YInVaU96-AgAAAAC/foldable-fence.gif",
+    title: "Strategic Withdrawal"
+  },
+  [Candidate.NATHANIEL_GREYSON]: {
+    gif: "https://media.tenor.com/evbnS5cmj7AAAAAi/chicken-walking.gif",
+    title: "Steady Progress"
+  }
+};
+
 export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
-  const abstainedVotes = votes.filter(v => v.candidate === Candidate.ABSTAINED).length;
+  const abstainedVoters = votes.filter(v => v.candidate === Candidate.ABSTAINED).sort((a, b) => a.voterName.localeCompare(b.voterName));
   const totalVotes = votes.length;
   
   const [chartVisible, setChartVisible] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
+
+  const [modalState, setModalState] = useState<{ isOpen: boolean; gifUrl: string; title: string }>({
+    isOpen: false,
+    gifUrl: '',
+    title: ''
+  });
+  
+  // State for the Abstained Voter List specifically
+  const [isAbstainedVoterListOpen, setIsAbstainedVoterListOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -34,6 +61,27 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
     };
   }, []);
 
+  const handleOpenGifModal = (candidate: string) => {
+    const egg = EASTER_EGGS[candidate];
+    if (!egg) return;
+
+    setModalState({
+      isOpen: true,
+      gifUrl: egg.gif,
+      title: egg.title
+    });
+    setIsClosing(false);
+    setIsImageLoaded(false);
+  };
+
+  const handleCloseGifModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setModalState(prev => ({ ...prev, isOpen: false }));
+      setIsClosing(false);
+    }, 400); 
+  };
+
   // Process data for ACTIVE candidates only
   const data = ACTIVE_CANDIDATES.map(candidate => {
     const candidateVotes = votes.filter(v => v.candidate === candidate);
@@ -51,7 +99,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
   // Data for chart (Total votes including abstained for visibility of turnout)
   const chartData = [
     ...data,
-    { name: Candidate.ABSTAINED, value: abstainedVotes }
+    { name: Candidate.ABSTAINED, value: abstainedVoters.length }
   ];
 
   // Custom label render using passed x, y for better alignment with lines
@@ -85,15 +133,14 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
       <div className="order-2 lg:order-1">
         <ScrollReveal delay={100}>
             <div className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl">
-                {/* Fixed: Added py-1 to prevent bg-clip-text clipping */}
                 <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-4 md:mb-8 flex items-center gap-3 border-b border-white/5 pb-4 py-2">
                 📊 Candidate Results
                 </h2>
-                {/* Grid-cols-2 on mobile for side-by-side cards */}
                 <div className="grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-5">
                 {data.map((item, idx) => {
                     // Percent of TOTAL votes (including abstentions)
                     const percentage = totalVotes > 0 ? (item.value / totalVotes) * 100 : 0;
+
                     return (
                     <ScrollReveal key={item.name} delay={idx * 50} width="100%">
                         <div 
@@ -109,12 +156,13 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                             
                             <div className="relative z-10">
                                 <div className="flex flex-col md:flex-row justify-between md:items-center mb-0 md:mb-4 gap-2 md:gap-0">
-                                    <div className="flex items-center gap-2 md:gap-4">
+                                    <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
                                         <div className="w-1 h-6 md:w-1.5 md:h-10 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)] flex-shrink-0 transition-all scale-y-110" style={{ backgroundColor: COLORS[item.name as Candidate] }}></div>
-                                        {/* Permanent highlighted text color - Added inline-block and py-1 for gradient safety */}
-                                        <h3 className="font-bold text-xs md:text-xl tracking-tight leading-snug pr-2 whitespace-normal break-words text-teal-50 transition-colors py-1">
+                                        <span 
+                                          className="font-bold text-xs md:text-xl tracking-tight leading-snug pr-2 whitespace-normal break-words text-teal-50 py-1"
+                                        >
                                           {item.name}
-                                        </h3>
+                                        </span>
                                     </div>
                                     <div className="flex flex-col md:flex-row items-end md:items-center gap-1 md:gap-3 pl-3 md:pl-0 self-end md:self-auto">
                                         <span className={`text-2xl md:text-4xl font-black tracking-tighter tabular-nums ${item.value > 0 ? 'text-white' : 'text-slate-600'}`}>
@@ -127,7 +175,6 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                                 </div>
                                 
                                 {item.value > 0 && (
-                                    /* Permanently visible (opacity-100) instead of hover */
                                     <div className="mt-2 pt-2 md:pt-3 border-t border-white/5 hidden md:block opacity-100 transition-opacity duration-300">
                                         <span className="text-slate-400 uppercase text-[10px] tracking-widest block mb-2 font-bold flex items-center gap-2">
                                             <span className="w-1 h-1 bg-slate-400 rounded-full"></span> Recorded Voters
@@ -144,14 +191,20 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                 })}
                 </div>
                 
-                {/* Abstained Small Summary */}
+                {/* Abstained Summary - Now opens Voter List instead of GIF */}
                 <ScrollReveal delay={200} width="100%">
-                    <div className="mt-4 p-3 bg-slate-900/30 border border-white/5 rounded-lg flex justify-between items-center hover:bg-slate-800/50 transition-colors">
-                        <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Abstained</span>
-                        <span className="text-slate-200 font-mono font-bold">
-                            <CountUp end={abstainedVotes} />
+                    <button 
+                        onClick={() => setIsAbstainedVoterListOpen(true)}
+                        className="mt-4 p-3 bg-slate-900/30 border border-white/5 rounded-lg flex justify-between items-center hover:bg-slate-800/50 hover:border-white/20 transition-all w-full focus:outline-none group/abstain"
+                    >
+                        <span className="text-xs text-slate-400 font-bold uppercase tracking-wider group-hover/abstain:text-slate-200 flex items-center gap-2">
+                           <Users className="w-3 h-3" />
+                           Abstained
                         </span>
-                    </div>
+                        <span className="text-slate-200 font-mono font-bold group-hover/abstain:scale-110 transition-transform">
+                            <CountUp end={abstainedVoters.length} />
+                        </span>
+                    </button>
                 </ScrollReveal>
             </div>
         </ScrollReveal>
@@ -161,7 +214,6 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
       <div className="order-1 lg:order-2">
         <ScrollReveal delay={100}>
             <div ref={chartRef} className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl flex flex-col">
-                {/* Fixed: Added py-2 to prevent bg-clip-text clipping */}
                 <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-2 md:mb-6 flex items-center gap-3 border-b border-white/5 pb-4 py-2">
                 📈 Distribution
                 </h2>
@@ -219,6 +271,106 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
             </div>
         </ScrollReveal>
       </div>
+
+      {/* Easter Egg Modal (GIFs) */}
+      {modalState.isOpen && (
+        <div 
+          className={`fixed inset-0 z-[999] flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden transition-all duration-500 ease-in-out ${isClosing ? 'opacity-0 scale-110 pointer-events-none' : 'opacity-100'}`}
+          style={{ top: 0, left: 0, right: 0, bottom: 0 }}
+          onClick={handleCloseGifModal}
+        >
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-[40px] z-[-1]" />
+          
+          <div 
+            className={`relative w-full max-w-[95vw] md:max-w-4xl transform-gpu transition-all duration-500 ease-out flex flex-col items-center gap-6 md:gap-8 ${isClosing ? 'scale-90 opacity-0 blur-xl' : 'scale-100 opacity-100'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative w-full aspect-square md:aspect-video max-h-[60vh] md:max-h-[70vh] rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-[0_40px_120px_-20px_rgba(0,0,0,1)] border-4 md:border-8 border-white/10 ring-1 ring-white/5 bg-slate-900/60 flex items-center justify-center">
+              <button 
+                onClick={handleCloseGifModal}
+                className="absolute top-4 right-4 md:top-8 md:right-8 p-2 md:p-3 bg-black/80 hover:bg-white text-white hover:text-black rounded-full transition-all backdrop-blur-xl z-30 border border-white/20 active:scale-90 shadow-[0_10px_30px_rgba(0,0,0,0.6)] opacity-100 ring-2 ring-white/10"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5 md:w-8 md:h-8" />
+              </button>
+
+              <img 
+                src={modalState.gifUrl} 
+                alt={modalState.title} 
+                className={`block w-full h-full object-cover md:object-contain transition-all duration-1000 ease-out ${isImageLoaded ? 'scale-100 opacity-100 blur-0' : 'scale-125 opacity-0 blur-2xl'}`}
+                onLoad={() => setIsImageLoaded(true)}
+              />
+              
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-teal-500/10 via-transparent to-white/5 opacity-40"></div>
+              
+              {!isImageLoaded && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20">
+                  <div className="p-6 md:p-8 rounded-full bg-slate-900/90 backdrop-blur-2xl border border-white/10 shadow-2xl animate-pulse flex items-center justify-center">
+                    <Loader2 className="w-10 h-10 md:w-16 md:h-16 text-teal-400 animate-spin" />
+                  </div>
+                  <p className="mt-6 text-[10px] md:text-sm font-black text-teal-400 uppercase tracking-[0.5em] animate-pulse text-center">Loading Content...</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Abstained Voter List Modal */}
+      {isAbstainedVoterListOpen && (
+        <div 
+          className="fixed inset-0 z-[999] flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden animate-in fade-in duration-300"
+          onClick={() => setIsAbstainedVoterListOpen(false)}
+        >
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-[20px] z-[-1]" />
+          <div 
+            className="bg-slate-900 border border-white/10 rounded-3xl shadow-[0_40px_120px_-20px_rgba(0,0,0,1)] w-full max-w-xl max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-slate-800/50">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-slate-700/50 rounded-lg">
+                        <Users className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-black text-white uppercase tracking-tight">Abstained Voters</h3>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{abstainedVoters.length} Total Abstentions</p>
+                    </div>
+                </div>
+                <button 
+                    onClick={() => setIsAbstainedVoterListOpen(false)}
+                    className="p-2 hover:bg-white/5 rounded-full text-slate-400 hover:text-white transition-all"
+                >
+                    <X className="w-6 h-6" />
+                </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-2">
+                {abstainedVoters.length > 0 ? (
+                    abstainedVoters.map((voter) => (
+                        <div key={voter.id} className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/5 group hover:border-white/20 transition-all">
+                            <span className="font-bold text-slate-200">{voter.voterName}</span>
+                            <span className="text-[10px] font-black text-slate-500 bg-black/40 px-2.5 py-1 rounded-md border border-white/5 uppercase tracking-widest">{voter.department}</span>
+                        </div>
+                    ))
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                        <p className="font-bold uppercase tracking-widest text-sm">No abstentions recorded</p>
+                    </div>
+                )}
+            </div>
+            
+            <div className="p-4 border-t border-white/10 bg-slate-800/30 text-center">
+                <button 
+                    onClick={() => setIsAbstainedVoterListOpen(false)}
+                    className="w-full py-3 bg-slate-700 hover:bg-slate-600 text-white font-black uppercase tracking-widest rounded-xl transition-all active:scale-[0.98]"
+                >
+                    Close
+                </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

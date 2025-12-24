@@ -18,6 +18,25 @@ const EMOTE_MAP: Record<string, string> = {
   [Candidate.ABSTAINED]: "https://cdn.7tv.app/emote/01G3F6FE2800067JFSTYNA74GE/4x.gif"
 };
 
+const EASTER_EGGS: Record<string, { gif: string; title: string }> = {
+  [Candidate.BRITTANY_ANGEL]: {
+    gif: "https://media1.tenor.com/m/77jgUjNcuGMAAAAC/girl-power-beat-up.gif",
+    title: "Leadership Presence"
+  },
+  [Candidate.ABSTAINED]: {
+    gif: "https://media1.tenor.com/m/YInVaU96-AgAAAAC/foldable-fence.gif",
+    title: "Strategic Withdrawal"
+  },
+  [Candidate.NATHANIEL_GREYSON]: {
+    gif: "https://media.tenor.com/evbnS5cmj7AAAAAi/chicken-walking.gif",
+    title: "Steady Progress"
+  },
+  [Candidate.SEAN_DANIELSON]: {
+    gif: "https://media1.tenor.com/m/65fGsZmFv2UAAAAC/yanatwt.gif",
+    title: "Community Spirit"
+  }
+};
+
 const CustomBarLabel = (props: any) => {
   const { x, y, width, height, value } = props;
   if (value === 0) return null;
@@ -49,12 +68,23 @@ const CustomBarLabel = (props: any) => {
 };
 
 export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ votes }) => {
-  const [isGifModalOpen, setIsGifModalOpen] = useState(false);
+  const [modalState, setModalState] = useState<{ isOpen: boolean; gifUrl: string; title: string }>({
+    isOpen: false,
+    gifUrl: '',
+    title: ''
+  });
   const [isClosing, setIsClosing] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-  const handleOpenModal = () => {
-    setIsGifModalOpen(true);
+  const handleOpenModal = (candidate: Candidate) => {
+    const egg = EASTER_EGGS[candidate];
+    if (!egg) return;
+
+    setModalState({
+      isOpen: true,
+      gifUrl: egg.gif,
+      title: egg.title
+    });
     setIsClosing(false);
     setIsImageLoaded(false);
   };
@@ -62,17 +92,17 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
   const handleCloseModal = () => {
     setIsClosing(true);
     setTimeout(() => {
-      setIsGifModalOpen(false);
+      setModalState(prev => ({ ...prev, isOpen: false }));
       setIsClosing(false);
     }, 400); 
   };
 
   if (votes.length === 0) return null;
 
-  const activeVotes = votes.filter(v => v.candidate !== Candidate.ABSTAINED);
+  const activeVotesCount = votes.filter(v => v.candidate !== Candidate.ABSTAINED).length;
   
-  // Calculate candidate stats and FILTER to only show those with votes
-  const candidatesWithVotes = Object.values(Candidate).map(cand => {
+  // Calculate candidate stats for candidates that actually have votes
+  const allCandidateStatsWithVotes = Object.values(Candidate).map(cand => {
     const candVotes = votes.filter(v => v.candidate === cand);
     return {
       candidate: cand,
@@ -80,12 +110,12 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
       votes: candVotes,
       isAbstained: cand === Candidate.ABSTAINED
     };
-  }).filter(stat => stat.count > 0); // Re-applying the filter to hide zero-vote candidates
+  }).filter(stat => stat.count > 0); // FILTER: Only show cards with votes
 
   // Sorting: Valid candidates by count descending, then Abstained always last
   const sortedStats = [
-    ...candidatesWithVotes.filter(c => !c.isAbstained).sort((a, b) => b.count - a.count),
-    ...candidatesWithVotes.filter(c => c.isAbstained)
+    ...allCandidateStatsWithVotes.filter(c => !c.isAbstained).sort((a, b) => b.count - a.count),
+    ...allCandidateStatsWithVotes.filter(c => c.isAbstained)
   ];
 
   const getRankBadge = (index: number, isAbstained: boolean) => {
@@ -101,7 +131,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
       {sortedStats.map((stat, index) => {
         const { candidate, count, votes: candVotes, isAbstained } = stat;
         const leaderColor = COLORS[candidate as Candidate] || '#cbd5e1';
-        const percentageOfValid = activeVotes.length > 0 ? (count / activeVotes.length) * 100 : 0;
+        const percentageOfValid = activeVotesCount > 0 ? (count / activeVotesCount) * 100 : 0;
         const percentageOfTotal = votes.length > 0 ? (count / votes.length) * 100 : 0;
         
         const breakdownData = DEPARTMENT_LIST.map(dept => {
@@ -111,14 +141,13 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
             name: dept,
             votes: votesForInDept.length,
             totalDept: totalVotesInDept,
-            // Fix: Use totalVotesInDept instead of undefined totalDept variable
             percent: totalVotesInDept > 0 ? (votesForInDept.length / totalVotesInDept) * 100 : 0,
             voterList: votesForInDept.map(v => v.voterName).sort()
           };
         });
 
-        // Easter egg logic: only 1st place Brittany Angel card triggers the GIF modal
-        const isEasterEggTarget = index === 0 && candidate === Candidate.BRITTANY_ANGEL;
+        // Easter egg logic: Enable for any candidate that has a defined easter egg
+        const isEasterEggTarget = !!EASTER_EGGS[candidate as Candidate];
 
         return (
           <ScrollReveal key={candidate}>
@@ -130,7 +159,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                       <div className="flex flex-col">
                           <div className="flex items-center gap-2 mb-3">
                               <button 
-                                onClick={isEasterEggTarget ? handleOpenModal : undefined}
+                                onClick={isEasterEggTarget ? () => handleOpenModal(candidate as Candidate) : undefined}
                                 className={`bg-teal-500/20 text-teal-400 border border-teal-500/40 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(20,184,166,0.2)] ${isEasterEggTarget ? 'animate-pulse hover:animate-none hover:bg-teal-400/30 hover:text-white hover:border-teal-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(20,184,166,0.4)] hover:brightness-125 cursor-pointer' : 'cursor-default'} outline-none flex items-center justify-center transition-all`}
                               >
                                 <span>{getRankBadge(index, isAbstained)}</span>
@@ -138,9 +167,9 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                           </div>
                           <h1 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight flex items-center gap-3 flex-wrap pb-2">
                               <button 
-                                onClick={isEasterEggTarget ? handleOpenModal : undefined}
+                                onClick={isEasterEggTarget ? () => handleOpenModal(candidate as Candidate) : undefined}
                                 className={`focus:outline-none transition-transform ${isEasterEggTarget ? 'hover:scale-110 active:scale-95 cursor-pointer' : 'cursor-default'} relative group/emote`}
-                                title={isEasterEggTarget ? "Harness Power" : undefined}
+                                title={isEasterEggTarget ? "View Details" : undefined}
                               >
                                 <img 
                                   src={EMOTE_MAP[candidate]} 
@@ -150,7 +179,12 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                   decoding="async"
                                 />
                               </button>
-                              <span className="inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-slate-400 py-1">{candidate}</span>
+                              <button 
+                                onClick={isEasterEggTarget ? () => handleOpenModal(candidate as Candidate) : undefined}
+                                className={`inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-slate-400 py-1 text-left focus:outline-none transition-all ${isEasterEggTarget ? 'hover:brightness-150 hover:scale-[1.02] active:scale-[0.98] cursor-pointer' : 'cursor-default'}`}
+                              >
+                                {candidate}
+                              </button>
                           </h1>
                           
                           <div className="mt-3 space-y-2">
@@ -253,7 +287,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
       })}
 
       {/* Easter Egg Modal */}
-      {isGifModalOpen && (
+      {modalState.isOpen && (
         <div 
           className={`fixed inset-0 z-[999] flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden transition-all duration-500 ease-in-out ${isClosing ? 'opacity-0 scale-110 pointer-events-none' : 'opacity-100'}`}
           style={{ top: 0, left: 0, right: 0, bottom: 0 }}
@@ -265,24 +299,18 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
             className={`relative w-full max-w-[95vw] md:max-w-4xl transform-gpu transition-all duration-500 ease-out flex flex-col items-center gap-6 md:gap-8 ${isClosing ? 'scale-90 opacity-0 blur-xl' : 'scale-100 opacity-100'}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-full flex justify-center px-4">
-               <span className="text-teal-400 text-lg sm:text-2xl md:text-4xl font-black uppercase tracking-[0.2em] sm:tracking-[0.4em] drop-shadow-[0_0_25px_rgba(20,184,166,0.4)] px-6 sm:px-10 py-2 sm:py-4 rounded-full border border-teal-500/20 bg-teal-500/5 backdrop-blur-md text-center inline-block max-w-full leading-tight">
-                 Preliminary Results
-               </span>
-            </div>
-
             <div className="relative w-full aspect-square md:aspect-video max-h-[60vh] md:max-h-[70vh] rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-[0_40px_120px_-20px_rgba(0,0,0,1)] border-4 md:border-8 border-white/10 ring-1 ring-white/5 bg-slate-900/60 flex items-center justify-center">
               <button 
                 onClick={handleCloseModal}
                 className="absolute top-4 right-4 md:top-8 md:right-8 p-2 md:p-3 bg-black/80 hover:bg-white text-white hover:text-black rounded-full transition-all backdrop-blur-xl z-30 border border-white/20 active:scale-90 shadow-[0_10px_30px_rgba(0,0,0,0.6)] opacity-100 ring-2 ring-white/10"
-                aria-label="Close Power View"
+                aria-label="Close"
               >
                 <X className="w-5 h-5 md:w-8 md:h-8" />
               </button>
 
               <img 
-                src="https://media1.tenor.com/m/77jgUjNcuGMAAAAC/girl-power-beat-up.gif" 
-                alt="Leadership Presence" 
+                src={modalState.gifUrl} 
+                alt={modalState.title} 
                 className={`block w-full h-full object-cover md:object-contain transition-all duration-1000 ease-out ${isImageLoaded ? 'scale-100 opacity-100 blur-0' : 'scale-125 opacity-0 blur-2xl'}`}
                 onLoad={() => setIsImageLoaded(true)}
               />
@@ -294,7 +322,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                   <div className="p-6 md:p-8 rounded-full bg-slate-900/90 backdrop-blur-2xl border border-white/10 shadow-2xl animate-pulse flex items-center justify-center">
                     <Loader2 className="w-10 h-10 md:w-16 md:h-16 text-teal-400 animate-spin" />
                   </div>
-                  <p className="mt-6 text-[10px] md:text-sm font-black text-teal-400 uppercase tracking-[0.5em] animate-pulse text-center">Manifesting Power...</p>
+                  <p className="mt-6 text-[10px] md:text-sm font-black text-teal-400 uppercase tracking-[0.5em] animate-pulse text-center">Loading Content...</p>
                 </div>
               )}
             </div>
