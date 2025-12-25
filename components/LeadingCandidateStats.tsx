@@ -32,8 +32,8 @@ const EASTER_EGGS: Record<string, { gif: string; title: string }> = {
     title: "Steady Progress"
   },
   [Candidate.SEAN_DANIELSON]: {
-    gif: "https://media1.tenor.com/m/65fGsZmFv2UAAAAC/yanatwt.gif",
-    title: "Community Spirit"
+    gif: "https://media1.tenor.com/m/3K5PzTVTQtMAAAAC/pablo-escobar-pablo.gif",
+    title: "Waiting for Results"
   }
 };
 
@@ -101,7 +101,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
 
   const activeVotesCount = votes.filter(v => v.candidate !== Candidate.ABSTAINED).length;
   
-  // Calculate candidate stats for candidates that actually have votes
+  // Only show cards for candidates or the "Abstain" group that received at least one vote
   const allCandidateStatsWithVotes = Object.values(Candidate).map(cand => {
     const candVotes = votes.filter(v => v.candidate === cand);
     return {
@@ -110,7 +110,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
       votes: candVotes,
       isAbstained: cand === Candidate.ABSTAINED
     };
-  }).filter(stat => stat.count > 0); // FILTER: Only show cards with votes
+  }).filter(stat => stat.count > 0);
 
   // Sorting: Valid candidates by count descending, then Abstained always last
   const sortedStats = [
@@ -146,7 +146,6 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
           };
         });
 
-        // Easter egg logic: Enable for any candidate that has a defined easter egg
         const isEasterEggTarget = !!EASTER_EGGS[candidate as Candidate];
 
         return (
@@ -169,11 +168,10 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                               <button 
                                 onClick={isEasterEggTarget ? () => handleOpenModal(candidate as Candidate) : undefined}
                                 className={`focus:outline-none transition-transform ${isEasterEggTarget ? 'hover:scale-110 active:scale-95 cursor-pointer' : 'cursor-default'} relative group/emote`}
-                                title={isEasterEggTarget ? "View Details" : undefined}
                               >
                                 <img 
                                   src={EMOTE_MAP[candidate]} 
-                                  alt={candidate} 
+                                  alt="" 
                                   className="w-10 h-10 md:w-16 md:h-16 object-contain"
                                   loading="eager"
                                   decoding="async"
@@ -310,7 +308,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
 
               <img 
                 src={modalState.gifUrl} 
-                alt={modalState.title} 
+                alt="" 
                 className={`block w-full h-full object-cover md:object-contain transition-all duration-1000 ease-out ${isImageLoaded ? 'scale-100 opacity-100 blur-0' : 'scale-125 opacity-0 blur-2xl'}`}
                 onLoad={() => setIsImageLoaded(true)}
               />
@@ -322,7 +320,6 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                   <div className="p-6 md:p-8 rounded-full bg-slate-900/90 backdrop-blur-2xl border border-white/10 shadow-2xl animate-pulse flex items-center justify-center">
                     <Loader2 className="w-10 h-10 md:w-16 md:h-16 text-teal-400 animate-spin" />
                   </div>
-                  <p className="mt-6 text-[10px] md:text-sm font-black text-teal-400 uppercase tracking-[0.5em] animate-pulse text-center">Loading Content...</p>
                 </div>
               )}
             </div>
