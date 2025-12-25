@@ -5,7 +5,7 @@ import { COLORS, ACTIVE_CANDIDATES } from '../constants';
 import { ScrollReveal } from './ScrollReveal';
 import { CountUp } from './CountUp';
 import { AnimatedBar } from './AnimatedBar';
-import { X, Loader2, Users } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 
 interface ResultsSectionProps {
   votes: Vote[];
@@ -27,7 +27,6 @@ const EASTER_EGGS: Record<string, { gif: string; title: string }> = {
 };
 
 export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
-  const abstainedVoters = votes.filter(v => v.candidate === Candidate.ABSTAINED).sort((a, b) => a.voterName.localeCompare(b.voterName));
   const totalVotes = votes.length;
   
   const [chartVisible, setChartVisible] = useState(false);
@@ -39,8 +38,6 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
     title: ''
   });
   
-  // State for the Abstained Voter List specifically
-  const [isAbstainedVoterListOpen, setIsAbstainedVoterListOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -61,19 +58,6 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
     };
   }, []);
 
-  const handleOpenGifModal = (candidate: string) => {
-    const egg = EASTER_EGGS[candidate];
-    if (!egg) return;
-
-    setModalState({
-      isOpen: true,
-      gifUrl: egg.gif,
-      title: egg.title
-    });
-    setIsClosing(false);
-    setIsImageLoaded(false);
-  };
-
   const handleCloseGifModal = () => {
     setIsClosing(true);
     setTimeout(() => {
@@ -82,8 +66,11 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
     }, 400); 
   };
 
-  // Process data for ACTIVE candidates only
-  const data = ACTIVE_CANDIDATES.map(candidate => {
+  // Process data for ALL candidates including ABSTAINED
+  // We create a combined list, map the data, and then sort by vote count
+  const allCandidatesList = [...ACTIVE_CANDIDATES, Candidate.ABSTAINED];
+
+  const data = allCandidatesList.map(candidate => {
     const candidateVotes = votes.filter(v => v.candidate === candidate);
     
     // Sort voters alphabetically
@@ -94,13 +81,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
       value: candidateVotes.length,
       voters: candidateVotes.map(v => v.voterName).join(", ")
     };
-  });
-
-  // Data for chart (Total votes including abstained for visibility of turnout)
-  const chartData = [
-    ...data,
-    { name: Candidate.ABSTAINED, value: abstainedVoters.length }
-  ];
+  }).sort((a, b) => b.value - a.value); // Sort by votes descending
 
   // Custom label render using passed x, y for better alignment with lines
   const renderCustomizedLabel = (props: any) => {
@@ -130,13 +111,13 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 mb-4 md:mb-8">
       {/* List Column */}
-      <div className="order-2 lg:order-1">
-        <ScrollReveal delay={100}>
-            <div className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl">
+      <div className="order-2 lg:order-1 h-full">
+        <ScrollReveal delay={100} className="h-full">
+            <div className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl h-full flex flex-col">
                 <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-4 md:mb-8 flex items-center gap-3 border-b border-white/5 pb-4 py-2">
                 📊 Candidate Results
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-5">
+                <div className="grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-5 flex-1">
                 {data.map((item, idx) => {
                     // Percent of TOTAL votes (including abstentions)
                     const percentage = totalVotes > 0 ? (item.value / totalVotes) * 100 : 0;
@@ -190,38 +171,22 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                     );
                 })}
                 </div>
-                
-                {/* Abstained Summary - Now opens Voter List instead of GIF */}
-                <ScrollReveal delay={200} width="100%">
-                    <button 
-                        onClick={() => setIsAbstainedVoterListOpen(true)}
-                        className="mt-4 p-3 bg-slate-900/30 border border-white/5 rounded-lg flex justify-between items-center hover:bg-slate-800/50 hover:border-white/20 transition-all w-full focus:outline-none group/abstain"
-                    >
-                        <span className="text-xs text-slate-400 font-bold uppercase tracking-wider group-hover/abstain:text-slate-200 flex items-center gap-2">
-                           <Users className="w-3 h-3" />
-                           Abstained
-                        </span>
-                        <span className="text-slate-200 font-mono font-bold group-hover/abstain:scale-110 transition-transform">
-                            <CountUp end={abstainedVoters.length} />
-                        </span>
-                    </button>
-                </ScrollReveal>
             </div>
         </ScrollReveal>
       </div>
 
       {/* Chart Column */}
-      <div className="order-1 lg:order-2">
-        <ScrollReveal delay={100}>
-            <div ref={chartRef} className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl flex flex-col">
+      <div className="order-1 lg:order-2 h-full">
+        <ScrollReveal delay={100} className="h-full">
+            <div ref={chartRef} className="glass-panel rounded-2xl p-4 md:p-8 shadow-xl flex flex-col h-full">
                 <h2 className="text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-2 md:mb-6 flex items-center gap-3 border-b border-white/5 pb-4 py-2">
                 📈 Distribution
                 </h2>
-                <div className="flex-1 min-h-[250px] md:min-h-[400px] flex items-center justify-center relative -ml-4">
-                <ResponsiveContainer width="100%" height="100%" className="!h-[250px] md:!h-[450px]">
+                <div className="flex-1 min-h-[250px] md:min-h-0 flex items-center justify-center relative -ml-4">
+                <ResponsiveContainer width="100%" height="100%" className="!h-[250px] md:!h-full min-h-[250px]">
                     <PieChart key={chartVisible ? 'visible' : 'hidden'}>
                     <Pie
-                        data={chartData.filter(d => d.value > 0)}
+                        data={data.filter(d => d.value > 0)}
                         cx="50%"
                         cy="50%"
                         innerRadius="60%"
@@ -235,7 +200,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                         animationDuration={800} // Speed up
                         animationEasing="ease-out"
                     >
-                        {chartData.filter(d => d.value > 0).map((entry, index) => (
+                        {data.filter(d => d.value > 0).map((entry, index) => (
                         <Cell 
                             key={`cell-${index}`} 
                             fill={COLORS[entry.name as Candidate]} 
@@ -311,62 +276,6 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                   <p className="mt-6 text-[10px] md:text-sm font-black text-teal-400 uppercase tracking-[0.5em] animate-pulse text-center">Loading Content...</p>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Abstained Voter List Modal */}
-      {isAbstainedVoterListOpen && (
-        <div 
-          className="fixed inset-0 z-[999] flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden animate-in fade-in duration-300"
-          onClick={() => setIsAbstainedVoterListOpen(false)}
-        >
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-[20px] z-[-1]" />
-          <div 
-            className="bg-slate-900 border border-white/10 rounded-3xl shadow-[0_40px_120px_-20px_rgba(0,0,0,1)] w-full max-w-xl max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-slate-800/50">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-700/50 rounded-lg">
-                        <Users className="w-5 h-5 text-slate-400" />
-                    </div>
-                    <div>
-                        <h3 className="text-xl font-black text-white uppercase tracking-tight">Abstained Voters</h3>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{abstainedVoters.length} Total Abstentions</p>
-                    </div>
-                </div>
-                <button 
-                    onClick={() => setIsAbstainedVoterListOpen(false)}
-                    className="p-2 hover:bg-white/5 rounded-full text-slate-400 hover:text-white transition-all"
-                >
-                    <X className="w-6 h-6" />
-                </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-2">
-                {abstainedVoters.length > 0 ? (
-                    abstainedVoters.map((voter) => (
-                        <div key={voter.id} className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/5 group hover:border-white/20 transition-all">
-                            <span className="font-bold text-slate-200">{voter.voterName}</span>
-                            <span className="text-[10px] font-black text-slate-500 bg-black/40 px-2.5 py-1 rounded-md border border-white/5 uppercase tracking-widest">{voter.department}</span>
-                        </div>
-                    ))
-                ) : (
-                    <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                        <p className="font-bold uppercase tracking-widest text-sm">No abstentions recorded</p>
-                    </div>
-                )}
-            </div>
-            
-            <div className="p-4 border-t border-white/10 bg-slate-800/30 text-center">
-                <button 
-                    onClick={() => setIsAbstainedVoterListOpen(false)}
-                    className="w-full py-3 bg-slate-700 hover:bg-slate-600 text-white font-black uppercase tracking-widest rounded-xl transition-all active:scale-[0.98]"
-                >
-                    Close
-                </button>
             </div>
           </div>
         </div>
