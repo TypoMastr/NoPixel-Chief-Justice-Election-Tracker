@@ -130,8 +130,14 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
     ...allCandidateStatsWithVotes.filter(c => c.isAbstained)
   ];
 
-  const getRankBadge = (index: number, isAbstained: boolean) => {
+  const getRankBadge = (index: number, isAbstained: boolean, candidate: string) => {
+    // 1. Prioridade máxima: Abstenção
     if (isAbstained) return "Abstention Count";
+    
+    // 2. Prioridade específica: Nathaniel Greyson é sempre Runner Up
+    if (candidate === Candidate.NATHANIEL_GREYSON) return "Runner Up";
+
+    // 3. Lógica padrão de ranking
     if (index === 0) return "Current Leader";
     if (index === 1) return "Runner Up";
     if (index === 2) return "Third Place";
@@ -177,7 +183,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                 onClick={isEasterEggTarget ? () => handleOpenModal(candidate as Candidate) : undefined}
                                 className={`bg-teal-500/20 text-teal-400 border border-teal-500/40 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(20,184,166,0.2)] ${isEasterEggTarget ? 'animate-pulse hover:animate-none hover:bg-teal-400/30 hover:text-white hover:border-teal-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(20,184,166,0.4)] hover:brightness-125 cursor-pointer' : 'cursor-default'} outline-none flex items-center justify-center transition-all`}
                               >
-                                <span>{getRankBadge(index, isAbstained)}</span>
+                                <span>{getRankBadge(index, isAbstained, candidate)}</span>
                               </button>
                           </div>
                           <h1 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight flex items-center gap-3 flex-wrap pb-2">
