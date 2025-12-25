@@ -49,6 +49,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
   const [isClosing, setIsClosing] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
+  // Observer para o Gráfico
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -65,6 +66,20 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
       if (chartRef.current) observer.disconnect();
     };
   }, []);
+
+  // Bloqueio de Scroll do Body quando Modais estão abertos
+  useEffect(() => {
+    if (selectedCandidateForList || modalState.isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    // Cleanup para garantir que o scroll volte caso o componente desmonte
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedCandidateForList, modalState.isOpen]);
 
   const handleCloseGifModal = () => {
     setIsClosing(true);
