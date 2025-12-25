@@ -44,11 +44,16 @@ export const DepartmentDetailedStats: React.FC<DepartmentDetailedStatsProps> = (
                                 {breakdown.map((item, i) => (
                                     <AnimatedBar 
                                         key={item.candidate}
-                                        targetWidth={`${item.percent}%`}
+                                        // A barra interna deve preencher todo o seu contêiner (que terá a largura definida pelo estilo abaixo)
+                                        targetWidth="100%"
                                         backgroundColor={COLORS[item.candidate]}
                                         delay={(idx * 100) + (i * 100)}
-                                        className="h-full relative"
-                                        style={{ flexShrink: 0 }}
+                                        className="h-full relative border-r border-slate-900/50 last:border-0"
+                                        style={{ 
+                                            // Define a largura do segmento com base na porcentagem
+                                            width: `${item.percent}%`,
+                                            flexShrink: 0
+                                        }}
                                         children={null}
                                     />
                                 ))}

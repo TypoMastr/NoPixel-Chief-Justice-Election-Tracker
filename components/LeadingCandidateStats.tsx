@@ -42,11 +42,6 @@ const CustomBarLabel = (props: any) => {
   if (value === 0) return null;
   return (
     <g>
-      <defs>
-        <style>
-          {`@keyframes fadeInRight { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: translateX(0); } }`}
-        </style>
-      </defs>
       <text
         x={x + width + 8}
         y={y + height / 2 + 1}
@@ -56,9 +51,6 @@ const CustomBarLabel = (props: any) => {
         style={{
           fontSize: '13px',
           fontWeight: '900',
-          opacity: 0,
-          animation: 'fadeInRight 0.5s ease-out forwards',
-          animationDelay: '200ms'
         }}
       >
         {value}
@@ -75,6 +67,28 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
   });
   const [isClosing, setIsClosing] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  
+  // Alterado: agora guardamos apenas se está visível no momento ou não, por candidato
+  const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>({});
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    const observers: IntersectionObserver[] = [];
+    
+    Object.keys(cardRefs.current).forEach(key => {
+      const observer = new IntersectionObserver(([entry]) => {
+        // Atualiza estado: true se visível, false se não
+        setVisibleCards(prev => ({ ...prev, [key]: entry.isIntersecting }));
+      }, { threshold: 0.1 }); 
+
+      if (cardRefs.current[key]) {
+        observer.observe(cardRefs.current[key]!);
+        observers.push(observer);
+      }
+    });
+
+    return () => observers.forEach(o => o.disconnect());
+  }, [votes]);
 
   const handleOpenModal = (candidate: Candidate) => {
     const egg = EASTER_EGGS[candidate];
@@ -101,7 +115,6 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
 
   const activeVotesCount = votes.filter(v => v.candidate !== Candidate.ABSTAINED).length;
   
-  // Only show cards for candidates or the "Abstain" group that received at least one vote
   const allCandidateStatsWithVotes = Object.values(Candidate).map(cand => {
     const candVotes = votes.filter(v => v.candidate === cand);
     return {
@@ -112,7 +125,6 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
     };
   }).filter(stat => stat.count > 0);
 
-  // Sorting: Valid candidates by count descending, then Abstained always last
   const sortedStats = [
     ...allCandidateStatsWithVotes.filter(c => !c.isAbstained).sort((a, b) => b.count - a.count),
     ...allCandidateStatsWithVotes.filter(c => c.isAbstained)
@@ -147,10 +159,14 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
         });
 
         const isEasterEggTarget = !!EASTER_EGGS[candidate as Candidate];
+        const isVisible = visibleCards[candidate] || false;
 
         return (
           <ScrollReveal key={candidate}>
-            <div className="glass-panel rounded-2xl p-5 md:p-8 shadow-2xl relative overflow-hidden ring-1 ring-white/10">
+            <div 
+              ref={(el) => { cardRefs.current[candidate] = el; }}
+              className="glass-panel rounded-2xl p-5 md:p-8 shadow-2xl relative overflow-hidden ring-1 ring-white/10"
+            >
               <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-b from-white to-transparent opacity-[0.03] rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
 
               <div className="relative z-10">
@@ -173,7 +189,7 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                   src={EMOTE_MAP[candidate]} 
                                   alt="" 
                                   className="w-10 h-10 md:w-16 md:h-16 object-contain"
-                                  loading="eager"
+                                  loading="lazy"
                                   decoding="async"
                                 />
                               </button>
@@ -217,7 +233,14 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                           </h3>
                           <div className="w-full h-full min-h-[250px]">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={breakdownData} layout="vertical" margin={{ left: 0, right: 40, bottom: 20 }}>
+                                <BarChart 
+                                  // Reutiliza a key baseada na visibilidade para "resetar" a animação de entrada do gráfico
+                                  // quando o usuário rola para fora e volta.
+                                  key={isVisible ? 'visible' : 'hidden'}
+                                  data={breakdownData} 
+                                  layout="vertical" 
+                                  margin={{ left: 0, right: 40, bottom: 20 }}
+                                >
                                     <XAxis type="number" hide />
                                     <YAxis dataKey="name" type="category" width={70} tick={{ fill: '#f1f5f9', fontSize: 13, fontWeight: 900 }} axisLine={false} tickLine={false} />
                                     <Tooltip cursor={false} content={({ active, payload }) => {
@@ -240,7 +263,13 @@ export const LeadingCandidateStats: React.FC<LeadingCandidateStatsProps> = ({ vo
                                       }
                                       return null;
                                     }} />
-                                    <Bar dataKey="votes" radius={6} barSize={28} isAnimationActive={true} animationDuration={1000}>
+                                    <Bar 
+                                      dataKey="votes" 
+                                      radius={6} 
+                                      barSize={28} 
+                                      isAnimationActive={true} 
+                                      animationDuration={1000}
+                                    >
                                         {breakdownData.map((entry, index) => <Cell key={`cell-${index}`} fill={leaderColor} />)}
                                         <LabelList dataKey="votes" content={<CustomBarLabel />} />
                                     </Bar>

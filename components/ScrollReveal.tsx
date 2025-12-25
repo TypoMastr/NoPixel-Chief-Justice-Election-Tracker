@@ -3,8 +3,8 @@ import React, { useEffect, useRef, useState } from 'react';
 interface ScrollRevealProps {
   children: React.ReactNode;
   width?: "fit-content" | "100%";
-  delay?: number; // ms
-  threshold?: number; // 0 to 1
+  delay?: number;
+  threshold?: number;
   className?: string;
 }
 
@@ -16,45 +16,22 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   className = ""
 }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const [direction, setDirection] = useState<'up' | 'down'>('down');
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          // Determine entry direction based on position relative to viewport center
-          const isEnteringFromBottom = entry.boundingClientRect.top > (window.innerHeight / 2);
-          setDirection(isEnteringFromBottom ? 'down' : 'up');
-          setIsVisible(true);
-        } else {
-          setIsVisible(false);
-        }
+        // Atualiza o estado baseado na visibilidade atual.
+        // Se entrar na tela -> true (anima entrada)
+        // Se sair da tela -> false (anima saída)
+        setIsVisible(entry.isIntersecting);
       },
-      {
-        threshold: threshold,
-        rootMargin: "0px 0px -20px 0px"
-      }
+      { threshold: threshold }
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.disconnect();
-      }
-    };
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
   }, [threshold]);
-
-  const getHiddenState = () => {
-    // Removed 'filter blur-sm' for performance optimization on mobile devices.
-    // Opacity and Transform are handled by the compositor thread (GPU), while Blur often requires rasterization.
-    return direction === 'down' 
-      ? 'opacity-0 translate-y-8 scale-[0.98]' 
-      : 'opacity-0 -translate-y-8 scale-[0.98]';
-  };
 
   return (
     <div
@@ -62,13 +39,13 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
       style={{ 
         width, 
         transitionDelay: isVisible ? `${delay}ms` : '0ms',
-        transitionDuration: '600ms', // Slightly faster for snappier feel
+        // Duração um pouco mais rápida na saída para parecer responsivo
+        transitionDuration: isVisible ? '700ms' : '500ms',
       }}
-      // Added transform-gpu to force layer creation
       className={`transform-gpu transition-all ease-out will-change-[transform,opacity] ${
         isVisible 
-          ? 'opacity-100 translate-y-0 scale-100' 
-          : getHiddenState()
+          ? 'opacity-100 translate-y-0 scale-100 blur-0' 
+          : 'opacity-0 translate-y-8 scale-[0.96] blur-sm'
       } ${className}`}
     >
       {children}

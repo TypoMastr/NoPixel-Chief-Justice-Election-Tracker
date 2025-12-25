@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 
 interface AnimatedBarProps {
-  targetWidth: string; // e.g., "50%"
+  targetWidth: string; 
   backgroundColor: string;
   className?: string;
   delay?: number;
@@ -17,46 +17,48 @@ export const AnimatedBar: React.FC<AnimatedBarProps> = ({
   children,
   style = {}
 }) => {
-  const [width, setWidth] = useState("0%");
+  const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Add small timeout to ensure smooth transition trigger
+          // Pequeno delay para começar a crescer apenas quando o usuário focar
           setTimeout(() => {
-            setWidth(targetWidth);
+            setIsVisible(true);
           }, delay);
         } else {
-          // Reset immediately when out of view
-          setWidth("0%");
+          // Reseta a barra quando sai da tela para poder animar novamente depois
+          setIsVisible(false);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.01 }
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [delay]);
 
-    return () => {
-      if (ref.current) observer.disconnect();
-    };
-  }, [targetWidth, delay]);
+  const numericScale = parseFloat(targetWidth) / 100 || 0;
 
   return (
     <div 
       ref={ref}
-      className={`${className} transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1)`}
+      className={`${className} relative overflow-hidden`}
       style={{ 
-        width: width, 
-        backgroundColor: backgroundColor,
-        transitionProperty: 'width',
-        willChange: 'width',
+        width: '100%',
+        backgroundColor: 'transparent',
         ...style
       }}
     >
+      <div 
+        className="absolute inset-0 transition-transform duration-1000 cubic-bezier(0.16, 1, 0.3, 1) origin-left will-change-transform transform-gpu"
+        style={{ 
+          backgroundColor: backgroundColor,
+          transform: isVisible ? `scaleX(${numericScale})` : 'scaleX(0)',
+        }}
+      />
       {children}
     </div>
   );

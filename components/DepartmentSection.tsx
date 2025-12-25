@@ -17,6 +17,7 @@ export const DepartmentSection: React.FC<DepartmentSectionProps> = ({ votes }) =
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
+        // Alterna a visibilidade baseado no scroll, permitindo re-animação
         setChartVisible(entry.isIntersecting);
       },
       { threshold: 0.1 }
@@ -33,7 +34,6 @@ export const DepartmentSection: React.FC<DepartmentSectionProps> = ({ votes }) =
   
   const data = DEPARTMENT_LIST.map(dept => {
     const deptVotes = votes.filter(v => v.department === dept);
-    // Group votes within department by candidate
     const breakdown = deptVotes.reduce((acc, vote) => {
       acc[vote.candidate] = (acc[vote.candidate] || 0) + 1;
       return acc;
@@ -57,7 +57,8 @@ export const DepartmentSection: React.FC<DepartmentSectionProps> = ({ votes }) =
           <div className="h-[250px] md:h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart 
-                key={chartVisible ? 'visible' : 'hidden'} // Force animation replay on scroll
+                // A key muda conforme a visibilidade, forçando o gráfico a redesenhar a animação
+                key={chartVisible ? 'visible' : 'hidden'} 
                 data={data} 
                 margin={{ top: 20, right: 10, left: 0, bottom: 0 }}
               >
@@ -84,7 +85,7 @@ export const DepartmentSection: React.FC<DepartmentSectionProps> = ({ votes }) =
                     radius={6} 
                     barSize={30}
                     isAnimationActive={true}
-                    animationDuration={800} // Speed up
+                    animationDuration={800} 
                     animationEasing="ease-out"
                 >
                   <LabelList 

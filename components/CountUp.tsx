@@ -11,7 +11,7 @@ interface CountUpProps {
 
 export const CountUp: React.FC<CountUpProps> = ({ 
   end, 
-  duration = 800, // Reduced from 1500ms to 800ms
+  duration = 1000, 
   decimals = 0, 
   suffix = '', 
   prefix = '',
@@ -19,37 +19,41 @@ export const CountUp: React.FC<CountUpProps> = ({
 }) => {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsVisible(entry.isIntersecting);
+        if (entry.isIntersecting) {
+          setHasStarted(true);
+        } else {
+          // Opcional: Se quiser que o número zere ao sair da tela, descomente abaixo.
+          // Caso contrário, ele manterá o valor final até sair e voltar.
+          // Para animação contínua de "re-entrada", vamos resetar:
+          setHasStarted(false);
+          setCount(0);
+        }
       },
       { threshold: 0.1 }
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) observer.disconnect();
-    };
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
+    if (!hasStarted) return;
+
     let startTime: number;
     let animationFrame: number;
 
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const progress = timestamp - startTime;
-      
-      // Easing function (easeOutExpo)
       const percentage = Math.min(progress / duration, 1);
-      const easeOut = percentage === 1 ? 1 : 1 - Math.pow(2, -10 * percentage);
       
+      // Easing: easeOutExpo
+      const easeOut = percentage === 1 ? 1 : 1 - Math.pow(2, -10 * percentage);
       const currentCount = easeOut * end;
       
       setCount(currentCount);
@@ -61,18 +65,11 @@ export const CountUp: React.FC<CountUpProps> = ({
       }
     };
 
-    if (isVisible) {
-      // Start counting up
-      animationFrame = requestAnimationFrame(animate);
-    } else {
-      // Reset to 0 when out of view
-      setCount(0);
-    }
-
+    animationFrame = requestAnimationFrame(animate);
     return () => {
       if (animationFrame) cancelAnimationFrame(animationFrame);
     };
-  }, [isVisible, end, duration]);
+  }, [hasStarted, end, duration]);
 
   return (
     <span ref={ref} className={className}>

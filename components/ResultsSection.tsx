@@ -191,7 +191,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                 })}
                 </div>
                 
-                {/* Abstained Summary - Opens Voter List */}
+                {/* Abstained Summary - Now opens Voter List instead of GIF */}
                 <ScrollReveal delay={200} width="100%">
                     <button 
                         onClick={() => setIsAbstainedVoterListOpen(true)}
@@ -296,7 +296,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
 
               <img 
                 src={modalState.gifUrl} 
-                alt="" 
+                alt={modalState.title} 
                 className={`block w-full h-full object-cover md:object-contain transition-all duration-1000 ease-out ${isImageLoaded ? 'scale-100 opacity-100 blur-0' : 'scale-125 opacity-0 blur-2xl'}`}
                 onLoad={() => setIsImageLoaded(true)}
               />
@@ -308,6 +308,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                   <div className="p-6 md:p-8 rounded-full bg-slate-900/90 backdrop-blur-2xl border border-white/10 shadow-2xl animate-pulse flex items-center justify-center">
                     <Loader2 className="w-10 h-10 md:w-16 md:h-16 text-teal-400 animate-spin" />
                   </div>
+                  <p className="mt-6 text-[10px] md:text-sm font-black text-teal-400 uppercase tracking-[0.5em] animate-pulse text-center">Loading Content...</p>
                 </div>
               )}
             </div>
