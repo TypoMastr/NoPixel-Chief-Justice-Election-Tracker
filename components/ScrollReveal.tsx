@@ -6,6 +6,7 @@ interface ScrollRevealProps {
   delay?: number;
   threshold?: number;
   className?: string;
+  containerRef?: React.RefObject<HTMLElement | null>; // Novo suporte para container de scroll
 }
 
 export const ScrollReveal: React.FC<ScrollRevealProps> = ({ 
@@ -13,7 +14,8 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   width = "100%", 
   delay = 0,
   threshold = 0.1, 
-  className = ""
+  className = "",
+  containerRef
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -26,12 +28,15 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
         // Se sair da tela -> false (anima saída)
         setIsVisible(entry.isIntersecting);
       },
-      { threshold: threshold }
+      { 
+        threshold: threshold,
+        root: containerRef?.current || null // Usa o container específico se fornecido, senão usa viewport
+      }
     );
 
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
-  }, [threshold]);
+  }, [threshold, containerRef]);
 
   return (
     <div

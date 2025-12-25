@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Vote, Candidate } from '../types';
-import { COLORS, ACTIVE_CANDIDATES } from '../constants';
+import { COLORS, ACTIVE_CANDIDATES, DEPARTMENT_LIST } from '../constants';
 import { ScrollReveal } from './ScrollReveal';
 import { CountUp } from './CountUp';
 import { AnimatedBar } from './AnimatedBar';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, List, Users } from 'lucide-react';
 
 interface ResultsSectionProps {
   votes: Vote[];
@@ -32,12 +32,20 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
   const [chartVisible, setChartVisible] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
 
+  // Easter Egg Modal State
   const [modalState, setModalState] = useState<{ isOpen: boolean; gifUrl: string; title: string }>({
     isOpen: false,
     gifUrl: '',
     title: ''
   });
   
+  // Voter List Modal State
+  const [selectedCandidateForList, setSelectedCandidateForList] = useState<string | null>(null);
+  const [isListModalClosing, setIsListModalClosing] = useState(false);
+  
+  // Ref para o container de scroll do modal para o ScrollReveal funcionar dentro dele
+  const listModalScrollRef = useRef<HTMLDivElement>(null);
+
   const [isClosing, setIsClosing] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -64,6 +72,14 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
       setModalState(prev => ({ ...prev, isOpen: false }));
       setIsClosing(false);
     }, 400); 
+  };
+
+  const handleCloseListModal = () => {
+    setIsListModalClosing(true);
+    setTimeout(() => {
+        setSelectedCandidateForList(null);
+        setIsListModalClosing(false);
+    }, 300); // Matches animation duration
   };
 
   // Process data for ALL candidates including ABSTAINED
@@ -108,6 +124,79 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
     );
   };
 
+  // Helper to group votes by department for the list modal
+  const getVotesByDept = (candidateName: string) => {
+    const candidateVotes = votes.filter(v => v.candidate === candidateName);
+    const grouped: Record<string, string[]> = {};
+    
+    DEPARTMENT_LIST.forEach(dept => {
+        const deptVoters = candidateVotes
+            .filter(v => v.department === dept)
+            .map(v => v.voterName)
+            .sort();
+        
+        if (deptVoters.length > 0) {
+            grouped[dept] = deptVoters;
+        }
+    });
+    
+    return grouped;
+  };
+
+  // Helper for Department Styling in Modal (Based on VoterGrid themes)
+  const getDeptStyle = (dept: string) => {
+    const d = dept.toUpperCase();
+    if (d === 'BSCO' || d === 'BCSO') return {
+        container: "bg-gradient-to-br from-[#423a26] to-[#262115] border-[#7d7150]/60",
+        title: "text-[#e8e3d3]",
+        badge: "bg-[#7d7150]/20 text-[#e8e3d3] border-[#7d7150]/40",
+        item: "bg-[#2b2518]/60 border-[#7d7150]/20 text-[#e8e3d3]",
+        iconBg: "bg-[#7d7150]/30",
+        iconColor: "text-[#e8e3d3]"
+    };
+    if (d === 'LSPD') return {
+        container: "bg-gradient-to-br from-[#0f172a] to-[#1e3a8a] border-blue-800/60",
+        title: "text-blue-100",
+        badge: "bg-blue-500/20 text-blue-200 border-blue-500/40",
+        item: "bg-[#020617]/40 border-blue-500/20 text-blue-100",
+        iconBg: "bg-blue-500/20",
+        iconColor: "text-blue-200"
+    };
+    if (d === 'SASM') return {
+        container: "bg-gradient-to-br from-[#64748b] to-[#475569] border-slate-400/50",
+        title: "text-white",
+        badge: "bg-slate-300/20 text-white border-slate-300/40",
+        item: "bg-slate-800/40 border-slate-400/20 text-slate-100",
+        iconBg: "bg-slate-400/30",
+        iconColor: "text-white"
+    };
+    if (d === 'DOC') return {
+        container: "bg-slate-950/98 border-slate-800",
+        title: "text-slate-200",
+        badge: "bg-slate-700 text-slate-500 border-slate-600",
+        item: "bg-slate-900/95 border-slate-800/60 text-slate-300",
+        iconBg: "bg-slate-800",
+        iconColor: "text-slate-400"
+    };
+     if (d === 'DOJ') return {
+        container: "bg-slate-900/90 border-slate-700",
+        title: "text-white",
+        badge: "bg-slate-700 text-slate-300 border-slate-500",
+        item: "bg-slate-800/80 border-slate-700/60 text-slate-200",
+        iconBg: "bg-slate-700",
+        iconColor: "text-slate-300"
+    };
+    // Default
+    return {
+        container: "bg-slate-800/50 border-white/10",
+        title: "text-teal-400",
+        badge: "bg-slate-800 text-slate-500 border-slate-700",
+        item: "bg-slate-800/40 border-white/5 text-slate-200",
+        iconBg: "bg-slate-700/50",
+        iconColor: "text-slate-400"
+    };
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 mb-4 md:mb-8">
       {/* List Column */}
@@ -125,7 +214,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                     return (
                     <ScrollReveal key={item.name} delay={idx * 50} width="100%">
                         <div 
-                            className="group bg-slate-800/80 p-3 md:p-5 rounded-xl border border-teal-500/50 transition-all duration-300 relative overflow-hidden shadow-lg h-full"
+                            className="group bg-slate-800/80 p-3 md:p-5 rounded-xl border border-teal-500/50 transition-all duration-300 relative overflow-hidden shadow-lg h-full flex flex-col justify-between"
                         >
                             {/* Background bar animation */}
                             <AnimatedBar 
@@ -156,14 +245,29 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                                 </div>
                                 
                                 {item.value > 0 && (
-                                    <div className="mt-2 pt-2 md:pt-3 border-t border-white/5 hidden md:block opacity-100 transition-opacity duration-300">
-                                        <span className="text-slate-400 uppercase text-[10px] tracking-widest block mb-2 font-bold flex items-center gap-2">
-                                            <span className="w-1 h-1 bg-slate-400 rounded-full"></span> Recorded Voters
-                                        </span> 
-                                        <p className="text-slate-200 text-xs md:text-sm leading-relaxed font-normal">
-                                            {item.voters}
-                                        </p>
-                                    </div>
+                                    <>
+                                        {/* Desktop View: Inline List */}
+                                        <div className="mt-2 pt-2 md:pt-3 border-t border-white/5 hidden md:block opacity-100 transition-opacity duration-300">
+                                            <span className="text-slate-400 uppercase text-[10px] tracking-widest block mb-2 font-bold flex items-center gap-2">
+                                                <span className="w-1 h-1 bg-slate-400 rounded-full"></span> Recorded Voters
+                                            </span> 
+                                            <p className="text-slate-200 text-xs md:text-sm leading-relaxed font-normal">
+                                                {item.voters}
+                                            </p>
+                                        </div>
+
+                                        {/* Mobile View: Button to Open Modal */}
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedCandidateForList(item.name);
+                                            }}
+                                            className="mt-3 w-full py-2 bg-slate-700/50 hover:bg-slate-700 border border-white/5 rounded-lg text-xs font-bold text-teal-400 uppercase tracking-widest flex items-center justify-center gap-2 md:hidden transition-colors active:scale-95"
+                                        >
+                                            <List className="w-3 h-3" />
+                                            View List
+                                        </button>
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -278,6 +382,85 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Voter List Modal (Mobile Optimized with Scroll Animations) */}
+      {selectedCandidateForList && (
+        <div 
+          className={`fixed inset-0 z-[999] flex flex-col items-center justify-end md:justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 ease-out ${isListModalClosing ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+          onClick={handleCloseListModal}
+        >
+            <div 
+                className={`w-full md:max-w-md bg-slate-900 border-t md:border border-slate-700 rounded-t-3xl md:rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col ${isListModalClosing ? 'animate-slide-out-bottom' : 'animate-slide-in-bottom'}`}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="p-5 border-b border-white/10 flex justify-between items-center bg-slate-800/50 flex-shrink-0 z-10">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="w-1.5 h-8 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)] flex-shrink-0" style={{ backgroundColor: COLORS[selectedCandidateForList as Candidate] }}></div>
+                        <h3 className="text-lg font-black text-white truncate pr-2 leading-tight">
+                            {selectedCandidateForList}
+                        </h3>
+                    </div>
+                    <button 
+                        onClick={handleCloseListModal}
+                        className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div 
+                  ref={listModalScrollRef}
+                  className="overflow-y-auto p-5 space-y-4 custom-scrollbar bg-slate-950 flex-1"
+                >
+                    {Object.entries(getVotesByDept(selectedCandidateForList)).map(([dept, names], groupIdx) => {
+                        const theme = getDeptStyle(dept);
+                        return (
+                          <ScrollReveal 
+                            key={dept} 
+                            containerRef={listModalScrollRef} 
+                            delay={groupIdx * 50} 
+                            threshold={0.1}
+                          >
+                            <div 
+                                className={`rounded-xl border p-3 fill-mode-forwards ${theme.container}`}
+                            >
+                                <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
+                                    <span className={`font-black text-sm uppercase tracking-widest ${theme.title}`}>{dept}</span>
+                                    <span className={`text-xs font-bold px-2 py-0.5 rounded border ${theme.badge}`}>{names.length}</span>
+                                </div>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {names.map((name, idx) => (
+                                      <ScrollReveal 
+                                        key={idx} 
+                                        containerRef={listModalScrollRef} 
+                                        delay={idx * 30}
+                                        threshold={0.1}
+                                      >
+                                        <div 
+                                            className={`flex items-center gap-3 p-2 rounded-lg border transition-all ${theme.item}`}
+                                        >
+                                            <div className={`p-1.5 rounded-full ${theme.iconBg}`}>
+                                                <Users className={`w-3 h-3 ${theme.iconColor}`} />
+                                            </div>
+                                            <span className="text-sm font-bold">{name}</span>
+                                        </div>
+                                      </ScrollReveal>
+                                    ))}
+                                </div>
+                            </div>
+                          </ScrollReveal>
+                        );
+                    })}
+                    
+                    {Object.keys(getVotesByDept(selectedCandidateForList)).length === 0 && (
+                        <div className="text-center py-8 text-slate-500">
+                            <p className="text-sm font-bold uppercase tracking-widest">No votes recorded</p>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
       )}
     </div>
