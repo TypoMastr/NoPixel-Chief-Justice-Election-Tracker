@@ -21,7 +21,7 @@ const EASTER_EGGS: Record<string, { gif: string; title: string }> = {
     title: "Strategic Withdrawal"
   },
   [Candidate.NATHANIEL_GREYSON]: {
-    gif: "https://media.tenor.com/evbnS5cmj7AAAAAi/chicken-walking.gif",
+    gif: "https://media1.tenor.com/m/gYIcyJlm9rwAAAAC/minions-me.gif",
     title: "Steady Progress"
   }
 };
@@ -250,9 +250,11 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ votes }) => {
                                         </span>
                                     </div>
                                     <div className="flex flex-col md:flex-row items-end md:items-center gap-1 md:gap-3 pl-3 md:pl-0 self-end md:self-auto">
-                                        <span className={`text-2xl md:text-4xl font-black tracking-tighter tabular-nums ${item.value > 0 ? 'text-white' : 'text-slate-600'}`}>
-                                            <CountUp end={item.value} />
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-2xl md:text-4xl font-black tracking-tighter tabular-nums ${item.value > 0 ? 'text-white' : 'text-slate-600'}`}>
+                                                <CountUp end={item.value} />
+                                            </span>
+                                        </div>
                                         <div className="text-[10px] md:text-xs font-bold text-slate-300 bg-slate-800/80 border border-slate-600/50 rounded px-1.5 py-0.5 md:px-2 md:py-1 min-w-[40px] md:min-w-[50px] text-center shadow-sm backdrop-blur-sm">
                                             <CountUp end={percentage} decimals={1} suffix="%" />
                                         </div>

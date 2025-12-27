@@ -28,7 +28,7 @@ const EASTER_EGGS: Record<string, { gif: string; title: string }> = {
     title: "Strategic Withdrawal"
   },
   [Candidate.NATHANIEL_GREYSON]: {
-    gif: "https://media.tenor.com/evbnS5cmj7AAAAAi/chicken-walking.gif",
+    gif: "https://media1.tenor.com/m/gYIcyJlm9rwAAAAC/minions-me.gif",
     title: "Steady Progress"
   },
   [Candidate.SEAN_DANIELSON]: {
