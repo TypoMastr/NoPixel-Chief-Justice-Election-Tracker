@@ -15,6 +15,7 @@ import { supabase } from './supabaseClient';
 import { ScrollReveal } from './components/ScrollReveal';
 import { ParallaxBackground } from './components/ParallaxBackground';
 import { useToast } from './components/ToastProvider';
+import { CountdownTimer } from './components/CountdownTimer';
 
 const App: React.FC = () => {
   const [votes, setVotes] = useState<Vote[]>([]);
@@ -273,6 +274,9 @@ const App: React.FC = () => {
                 </div>
             </div>
         </ScrollReveal>
+
+        {/* Countdown Timer */}
+        <CountdownTimer />
 
         {/* Stats Row */}
         <StatsCards 
