@@ -16,7 +16,6 @@ export const CountdownTimer: React.FC = () => {
       const now = new Date();
 
       // 1. Get current time components specifically in 'America/New_York'
-      // This solves the timezone issue by ignoring the browser's local offset for the calculation base
       const nyFormatter = new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/New_York',
         year: 'numeric', month: 'numeric', day: 'numeric',
@@ -24,19 +23,17 @@ export const CountdownTimer: React.FC = () => {
         hour12: false
       });
 
-      // Extract parts to reconstruct a comparable Date object
       const parts = nyFormatter.formatToParts(now);
       const getPart = (type: string) => parseInt(parts.find(p => p.type === type)?.value || '0', 10);
       
       const nyYear = getPart('year');
-      const nyMonth = getPart('month') - 1; // JS months are 0-indexed
+      const nyMonth = getPart('month') - 1; 
       const nyDay = getPart('day');
       const nyHour = getPart('hour');
       const nyMinute = getPart('minute');
       const nySecond = getPart('second');
 
       // 2. Create "Abstract" Date objects
-      // We act as if the browser is in NY for math purposes to get the correct duration
       const nyNow = new Date(nyYear, nyMonth, nyDay, nyHour, nyMinute, nySecond);
 
       // 3. Find Next Monday
@@ -48,7 +45,7 @@ export const CountdownTimer: React.FC = () => {
       target.setDate(nyNow.getDate() + daysUntilMonday);
       target.setHours(12, 0, 0, 0);
 
-      // If calculation puts us in the past (e.g. it is Mon 1:00 PM), target is next week
+      // If calculation puts us in the past (e.g. it's Monday 1pm), move to next week
       if (target.getTime() <= nyNow.getTime()) {
         target.setDate(target.getDate() + 7);
       }
@@ -69,10 +66,8 @@ export const CountdownTimer: React.FC = () => {
       }
     };
 
-    // Initial call
     setTimeLeft(calculateTimeLeft());
 
-    // Interval
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);
@@ -93,16 +88,16 @@ export const CountdownTimer: React.FC = () => {
 
   return (
     <ScrollReveal delay={50}>
-      <div className="glass-panel rounded-xl p-3 md:px-6 md:py-3 mb-4 md:mb-6 flex flex-row items-center justify-between gap-3 relative overflow-hidden bg-[#020617]/80 border border-teal-500/20 shadow-lg shadow-teal-900/5">
+      <div className="glass-panel rounded-xl p-3 md:px-6 md:py-3 mb-4 md:mb-6 flex flex-col md:flex-row items-center justify-between gap-3 relative overflow-hidden bg-[#020617]/80 border border-teal-500/20 shadow-lg shadow-teal-900/5">
         
         {/* Left Side: Label */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
            <div className="p-2 bg-teal-500/10 rounded-lg text-teal-400 animate-pulse border border-teal-500/20 shadow-[0_0_10px_rgba(20,184,166,0.1)] hidden md:block">
               <Timer className="w-5 h-5" />
            </div>
-           <div className="flex flex-col justify-center">
+           <div className="flex flex-col justify-center text-center md:text-left">
               <span className="text-xs md:text-base font-black text-white uppercase tracking-widest leading-tight">
-                {timeLeft.isClosed ? "Voting Closed" : "Voting Ends"}
+                {timeLeft.isClosed ? "Voting Period Ended" : "Voting Ends"}
               </span>
               <span className="text-[9px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Monday 12:00 PM EST
@@ -110,15 +105,20 @@ export const CountdownTimer: React.FC = () => {
            </div>
         </div>
 
-        {/* Right Side: Timer */}
+        {/* Right Side: Timer or Message */}
         {timeLeft.isClosed ? (
-             <div className="px-4 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <span className="text-red-400 font-black uppercase tracking-[0.2em] text-xs md:text-sm">
-                  Closed
+             <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-center md:text-right w-full md:w-auto justify-center md:justify-end">
+                <div className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-lg shrink-0">
+                    <span className="text-red-400 font-black uppercase tracking-widest text-xs">
+                      Closed
+                    </span>
+                </div>
+                <span className="text-xs md:text-sm font-medium text-teal-100/80 leading-tight max-w-md">
+                  Results announced <span className="text-white font-bold">Friday, Jan 2, 2026</span> at <span className="text-white font-bold">Galileo Observatory</span>
                 </span>
              </div>
         ) : (
-            <div className="flex items-center gap-1 md:gap-3">
+            <div className="flex items-center gap-1 md:gap-3 w-full md:w-auto justify-center">
                 <CompactUnit value={timeLeft.days} label="Days" />
                 <span className="text-slate-600 font-black text-lg pb-3 hidden sm:block">:</span>
                 <CompactUnit value={timeLeft.hours} label="Hrs" />
