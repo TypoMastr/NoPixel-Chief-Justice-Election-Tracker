@@ -270,7 +270,7 @@ export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
 
             {/* Chart Area */}
             {/* Increased vertical height and bottom margin */}
-            <div className="h-[350px] md:h-[500px] w-full pl-0 select-none mb-12 md:mb-16">
+            <div className="h-[350px] md:h-[500px] w-full pl-0 select-none mb-12 md:mb-16 relative">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                         data={currentData}
