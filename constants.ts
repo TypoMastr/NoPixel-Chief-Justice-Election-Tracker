@@ -4,25 +4,51 @@ import { Candidate, Department, Vote } from "./types";
 // Helper to generate IDs for initial data
 const uuid = () => Math.random().toString(36).substring(2, 15);
 
+// Helper to generate staggered timestamps to ensure order preservation
+const baseTime = Date.now();
+let timeOffset = 0;
+
+// Standard increment
+const getTimestamp = () => {
+    timeOffset += 1000; // Increment 1 second per vote
+    return baseTime + timeOffset;
+};
+
+// Sync timestamp (increments minimally to appear "together" with previous)
+const getSyncTimestamp = () => {
+    timeOffset += 10; // Only 10ms diff
+    return baseTime + timeOffset;
+};
+
+// Ordered list: 12 Brittany -> 1 Abstained -> Rest
 export const INITIAL_VOTES: Vote[] = [
-  { id: uuid(), voterName: "Maeve Wolfe", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Matthew Espinoz", department: Department.LSPD, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Cohen Ryker", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Roman Atlas", department: Department.DOJ, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Brooke Ruth", department: Department.SASM, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Jessie Lea Gallagah", department: Department.SASM, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Daisy Dukakis", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Jonah Sloe", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Vincent Ventura", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Arnold Frost", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Ricky Dallas", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Tommy Horver", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Albert King", department: Department.LSPD, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Jenna Mustard", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Austin Bean", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: Date.now() },
-  { id: uuid(), voterName: "Brian Knight", department: Department.SASM, candidate: Candidate.ABSTAINED, timestamp: Date.now() },
-  { id: uuid(), voterName: "Jessica Springfield", department: Department.SASM, candidate: Candidate.ABSTAINED, timestamp: Date.now() },
-  { id: uuid(), voterName: "Yui Ishida", department: Department.DOC, candidate: Candidate.ABSTAINED, timestamp: Date.now() },
+  // 1. First 11 votes for Brittany
+  { id: uuid(), voterName: "Maeve Wolfe", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Matthew Espinoz", department: Department.LSPD, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Cohen Ryker", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Roman Atlas", department: Department.DOJ, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Brooke Ruth", department: Department.SASM, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Jessie Lea Gallagah", department: Department.SASM, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Daisy Dukakis", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Jonah Sloe", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Vincent Ventura", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Arnold Frost", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Ricky Dallas", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  
+  // 2. The 12th Brittany Vote
+  { id: uuid(), voterName: "Tommy Horver", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+
+  // 3. The 1st Abstained Vote (Synced closely to appear with the 12th vote)
+  { id: uuid(), voterName: "Brian Knight", department: Department.SASM, candidate: Candidate.ABSTAINED, timestamp: getSyncTimestamp() },
+
+  // 4. Remaining Brittany votes
+  { id: uuid(), voterName: "Albert King", department: Department.LSPD, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Jenna Mustard", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Austin Bean", department: Department.BSCO, candidate: Candidate.BRITTANY_ANGEL, timestamp: getTimestamp() },
+  
+  // 5. Remaining Abstained votes
+  { id: uuid(), voterName: "Jessica Springfield", department: Department.SASM, candidate: Candidate.ABSTAINED, timestamp: getTimestamp() },
+  { id: uuid(), voterName: "Yui Ishida", department: Department.DOC, candidate: Candidate.ABSTAINED, timestamp: getTimestamp() },
 ];
 
 // Candidates actually running for office (excluding Abstained)

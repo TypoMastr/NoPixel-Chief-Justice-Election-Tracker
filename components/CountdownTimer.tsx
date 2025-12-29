@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { ScrollReveal } from './ScrollReveal';
 import { Timer } from 'lucide-react';
 
-export const CountdownTimer: React.FC = () => {
+interface CountdownTimerProps {
+  onStatusChange?: (isClosed: boolean) => void;
+}
+
+export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onStatusChange }) => {
   const [timeLeft, setTimeLeft] = useState<{
     days: number;
     hours: number;
@@ -10,6 +14,13 @@ export const CountdownTimer: React.FC = () => {
     seconds: number;
     isClosed: boolean;
   }>({ days: 0, hours: 0, minutes: 0, seconds: 0, isClosed: false });
+
+  // Effect to notify parent when status changes
+  useEffect(() => {
+    if (onStatusChange) {
+      onStatusChange(timeLeft.isClosed);
+    }
+  }, [timeLeft.isClosed, onStatusChange]);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -45,10 +56,11 @@ export const CountdownTimer: React.FC = () => {
       target.setDate(nyNow.getDate() + daysUntilMonday);
       target.setHours(12, 0, 0, 0);
 
-      // If calculation puts us in the past (e.g. it's Monday 1pm), move to next week
-      if (target.getTime() <= nyNow.getTime()) {
-        target.setDate(target.getDate() + 7);
-      }
+      // NOTE: Auto-reset logic removed to allow "Closed" state to persist
+      // and trigger the Election Timeline display.
+      // if (target.getTime() <= nyNow.getTime()) {
+      //   target.setDate(target.getDate() + 7);
+      // }
 
       // 5. Calculate difference
       const difference = target.getTime() - nyNow.getTime();
@@ -88,15 +100,15 @@ export const CountdownTimer: React.FC = () => {
 
   return (
     <ScrollReveal delay={50}>
-      <div className="glass-panel rounded-xl p-3 md:px-6 md:py-3 mb-4 md:mb-6 flex flex-col md:flex-row items-center justify-between gap-3 relative overflow-hidden bg-[#020617]/80 border border-teal-500/20 shadow-lg shadow-teal-900/5">
+      <div className={`glass-panel rounded-xl p-3 md:px-6 md:py-3 mb-4 md:mb-6 flex flex-col md:flex-row items-center justify-between gap-3 relative overflow-hidden bg-[#020617]/80 border shadow-lg shadow-teal-900/5 transition-colors duration-500 ${timeLeft.isClosed ? 'border-red-500/20' : 'border-teal-500/20'}`}>
         
         {/* Left Side: Label */}
         <div className="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
-           <div className="p-2 bg-teal-500/10 rounded-lg text-teal-400 animate-pulse border border-teal-500/20 shadow-[0_0_10px_rgba(20,184,166,0.1)] hidden md:block">
+           <div className={`p-2 rounded-lg animate-pulse border shadow-[0_0_10px_rgba(20,184,166,0.1)] hidden md:block ${timeLeft.isClosed ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-teal-500/10 text-teal-400 border-teal-500/20'}`}>
               <Timer className="w-5 h-5" />
            </div>
            <div className="flex flex-col justify-center text-center md:text-left">
-              <span className="text-xs md:text-base font-black text-white uppercase tracking-widest leading-tight">
+              <span className={`text-xs md:text-base font-black uppercase tracking-widest leading-tight ${timeLeft.isClosed ? 'text-red-400' : 'text-white'}`}>
                 {timeLeft.isClosed ? "Voting Period Ended" : "Voting Ends"}
               </span>
               <span className="text-[9px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -107,7 +119,7 @@ export const CountdownTimer: React.FC = () => {
 
         {/* Right Side: Timer or Message */}
         {timeLeft.isClosed ? (
-             <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-center md:text-right w-full md:w-auto justify-center md:justify-end">
+             <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-center md:text-right w-full md:w-auto justify-center md:justify-end animate-fade-in">
                 <div className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-lg shrink-0">
                     <span className="text-red-400 font-black uppercase tracking-widest text-xs">
                       Closed

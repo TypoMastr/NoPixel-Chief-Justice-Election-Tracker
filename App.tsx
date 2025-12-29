@@ -16,11 +16,15 @@ import { ScrollReveal } from './components/ScrollReveal';
 import { ParallaxBackground } from './components/ParallaxBackground';
 import { useToast } from './components/ToastProvider';
 import { CountdownTimer } from './components/CountdownTimer';
+import { VoteTimeline } from './components/VoteTimeline';
 
 const App: React.FC = () => {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { showToast } = useToast();
+  
+  // Election Status State (Controlled by CountdownTimer)
+  const [isElectionClosed, setIsElectionClosed] = useState(false);
   
   // Modal States
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
@@ -275,8 +279,8 @@ const App: React.FC = () => {
             </div>
         </ScrollReveal>
 
-        {/* Countdown Timer */}
-        <CountdownTimer />
+        {/* Countdown Timer with Callback to toggle Timeline */}
+        <CountdownTimer onStatusChange={setIsElectionClosed} />
 
         {/* Stats Row */}
         <StatsCards 
@@ -288,6 +292,11 @@ const App: React.FC = () => {
 
         {/* Visualizations Row 1 */}
         <ResultsSection votes={votes} />
+
+        {/* Timeline Chart - Only shows when election is closed */}
+        {isElectionClosed && (
+            <VoteTimeline votes={votes} />
+        )}
 
         {/* Leading Candidate Breakdown */}
         <LeadingCandidateStats votes={votes} />
