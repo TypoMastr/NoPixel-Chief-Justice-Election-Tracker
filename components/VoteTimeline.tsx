@@ -49,7 +49,7 @@ const FadeInLabel = (props: any) => {
 
 export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentVoteIndex, setCurrentVoteIndex] = useState(0); // This now tracks "Cluster Index" not "Vote Index"
+  const [currentVoteIndex, setCurrentVoteIndex] = useState(0);
   const [selectedDuration, setSelectedDuration] = useState<number>(10000); // Default 10s
   const [isDesktop, setIsDesktop] = useState(false);
   
@@ -59,51 +59,39 @@ export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
   // Responsive check for Desktop vs Mobile labels
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
+    
+    // Check initially
     checkDesktop();
+    
     window.addEventListener('resize', checkDesktop);
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
   
-  // Sort votes chronologically
+  // Sort votes chronologically with robust tie-breaking
   const sortedVotes = useMemo(() => {
     return [...votes].sort((a, b) => {
         const timeDiff = a.timestamp - b.timestamp;
+        
+        // If times are different, use time
         if (timeDiff !== 0) return timeDiff;
         
-        // Tie-breakers for sorting stability
+        // TIE BREAKER: If timestamps are identical (common in bulk data),
+        // enforce a visual narrative order:
+        
+        // 1. Brittany Angel comes first (to establish the lead)
         if (a.candidate === Candidate.BRITTANY_ANGEL && b.candidate !== Candidate.BRITTANY_ANGEL) return -1;
         if (b.candidate === Candidate.BRITTANY_ANGEL && a.candidate !== Candidate.BRITTANY_ANGEL) return 1;
+
+        // 2. Abstained comes LAST (so they appear after active votes)
         if (a.candidate === Candidate.ABSTAINED && b.candidate !== Candidate.ABSTAINED) return 1;
         if (b.candidate === Candidate.ABSTAINED && a.candidate !== Candidate.ABSTAINED) return -1;
+
+        // 3. Alphabetical for others
         return a.candidate.localeCompare(b.candidate);
     });
   }, [votes]);
 
-  // Group votes into "Simultaneous Clusters" (votes happening within 50ms of each other)
-  // This allows multiple bars to grow at the exact same time in the animation.
-  const voteClusters = useMemo(() => {
-    if (sortedVotes.length === 0) return [];
-    
-    const clusters: Vote[][] = [];
-    let currentCluster: Vote[] = [sortedVotes[0]];
-    
-    for (let i = 1; i < sortedVotes.length; i++) {
-        const prev = sortedVotes[i-1];
-        const curr = sortedVotes[i];
-        
-        // If votes are within 50ms, consider them simultaneous
-        if (curr.timestamp - prev.timestamp < 50) {
-            currentCluster.push(curr);
-        } else {
-            clusters.push(currentCluster);
-            currentCluster = [curr];
-        }
-    }
-    clusters.push(currentCluster);
-    return clusters;
-  }, [sortedVotes]);
-
-  // Calculate Fixed Max Domain
+  // Calculate Fixed Max Domain to prevent Y-Axis jumping
   const maxDomainValue = useMemo(() => {
     if (votes.length === 0) return 10;
     const counts: Record<string, number> = {};
@@ -121,34 +109,29 @@ export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
     
     candidates.forEach(c => counts[c] = 0);
 
-    const totalSteps = voteClusters.length;
-    // Cap index at max steps
-    const safeIndex = Math.min(currentVoteIndex, totalSteps);
-    
-    const flooredIndex = Math.floor(safeIndex);
-    const fraction = safeIndex - flooredIndex;
+    const totalVotes = sortedVotes.length;
+    const flooredIndex = Math.floor(currentVoteIndex);
+    const fraction = currentVoteIndex - flooredIndex;
 
-    // 1. Add full votes from completed clusters
+    // 1. Add full votes
     for (let i = 0; i < flooredIndex; i++) {
-        if (i < totalSteps) {
-            voteClusters[i].forEach(vote => {
-                 if (counts[vote.candidate] !== undefined) {
-                    counts[vote.candidate] += 1;
-                 }
-            });
+        if (i < totalVotes) {
+            const vote = sortedVotes[i];
+            if (counts[vote.candidate] !== undefined) {
+                counts[vote.candidate] += 1;
+            }
         }
     }
 
-    // 2. Add fractional part for the active cluster (animating simultaneous votes together)
-    if (flooredIndex < totalSteps && fraction > 0) {
-        voteClusters[flooredIndex].forEach(vote => {
-            if (counts[vote.candidate] !== undefined) {
-                counts[vote.candidate] += fraction;
-            }
-        });
+    // 2. Add fractional part
+    if (flooredIndex < totalVotes && fraction > 0) {
+        const growingVote = sortedVotes[flooredIndex];
+        if (counts[growingVote.candidate] !== undefined) {
+            counts[growingVote.candidate] += fraction;
+        }
     }
 
-    // Map and Sort
+    // Map and Sort dynamically based on count (descending)
     const result = candidates.map(candidate => ({
       name: candidate,
       shortName: candidate.split(' ')[0],
@@ -158,24 +141,25 @@ export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
     }));
 
     return result.sort((a, b) => {
+        // Sort by vote count descending
         if (b.count !== a.count) return b.count - a.count;
+        // Tie-breaker: Alphabetical to prevent jittering when counts are equal (0 vs 0)
         return a.name.localeCompare(b.name);
     });
 
-  }, [currentVoteIndex, voteClusters]);
+  }, [currentVoteIndex, sortedVotes]);
 
-  // Animation Loop
+  // Delta-Time Animation Loop
   const animate = (time: number) => {
     if (lastTimeRef.current !== 0) {
         const deltaTime = time - lastTimeRef.current;
-        // Calculate speed based on number of CLUSTERS, not total votes
-        const stepIncrement = (voteClusters.length * deltaTime) / selectedDuration;
+        const voteIncrement = (sortedVotes.length * deltaTime) / selectedDuration;
 
         setCurrentVoteIndex(prev => {
-            const next = prev + stepIncrement;
-            if (next >= voteClusters.length) {
+            const next = prev + voteIncrement;
+            if (next >= sortedVotes.length) {
                 setIsPlaying(false);
-                return voteClusters.length;
+                return sortedVotes.length;
             }
             return next;
         });
@@ -190,7 +174,7 @@ export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
 
   useEffect(() => {
     if (isPlaying) {
-        if (currentVoteIndex >= voteClusters.length) {
+        if (currentVoteIndex >= sortedVotes.length) {
             setCurrentVoteIndex(0);
         }
         lastTimeRef.current = 0; 
@@ -200,7 +184,7 @@ export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
         lastTimeRef.current = 0;
     }
     return () => cancelAnimationFrame(requestRef.current);
-  }, [isPlaying, voteClusters.length]);
+  }, [isPlaying]);
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
@@ -209,7 +193,7 @@ export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
   };
 
   const togglePlay = () => {
-    if (!isPlaying && currentVoteIndex >= voteClusters.length) {
+    if (!isPlaying && currentVoteIndex >= sortedVotes.length) {
         setCurrentVoteIndex(0);
     }
     setIsPlaying(!isPlaying);
@@ -222,7 +206,7 @@ export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
 
   if (votes.length === 0) return null;
 
-  const progressPercentage = (currentVoteIndex / voteClusters.length) * 100;
+  const progressPercentage = (currentVoteIndex / sortedVotes.length) * 100;
 
   return (
     <ScrollReveal>
@@ -257,20 +241,17 @@ export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
                     <div className="flex items-center gap-2 bg-slate-900/80 px-4 py-1.5 rounded-lg border border-teal-500/30 shadow-[0_0_15px_rgba(20,184,166,0.1)]">
                         <VoteIcon className="w-4 h-4 text-teal-400" />
                         <span className="font-mono font-bold text-xs md:text-sm text-slate-200">
-                            {/* We show raw vote count here, so sum up counts from currentData */}
-                            {currentData.reduce((acc, curr) => acc + curr.displayCount, 0)} <span className="text-slate-500">/ {sortedVotes.length}</span>
+                            {Math.floor(currentVoteIndex)} <span className="text-slate-500">/ {sortedVotes.length}</span>
                         </span>
                     </div>
                 </div>
             </div>
 
             {/* Chart Area */}
-            {/* Increased vertical height and bottom margin */}
-            <div className="h-[350px] md:h-[500px] w-full pl-0 select-none mb-12 md:mb-16">
+            <div className="h-[350px] md:h-[500px] w-full pl-0 select-none mb-8 md:mb-10">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                         data={currentData}
-                        // Increased bottom margin to prevent label cutoff
                         margin={{ top: 30, right: 0, left: 0, bottom: 40 }}
                         barCategoryGap="20%"
                     >
@@ -297,6 +278,7 @@ export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
                             radius={[6, 6, 0, 0]}
                             isAnimationActive={false} 
                         >
+                            {/* Use custom content renderer for Fade In Effect */}
                             <LabelList 
                                 dataKey="displayCount" 
                                 content={<FadeInLabel />} 
@@ -350,7 +332,7 @@ export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
                         <input
                             type="range"
                             min="0"
-                            max={voteClusters.length}
+                            max={sortedVotes.length}
                             step="0.1" 
                             value={currentVoteIndex}
                             onChange={handleSliderChange}
