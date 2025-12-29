@@ -15,10 +15,11 @@ type SpeedOption = {
   icon: React.ReactNode;
 };
 
+// Durations doubled to slow down animation by half
 const SPEED_OPTIONS: SpeedOption[] = [
-  { label: 'Slow', duration: 20000, icon: <Turtle className="w-3 h-3" /> },
-  { label: 'Normal', duration: 10000, icon: <Rabbit className="w-3 h-3" /> },
-  { label: 'Fast', duration: 5000, icon: <Zap className="w-3 h-3" /> },
+  { label: 'Slow', duration: 40000, icon: <Turtle className="w-3 h-3" /> },
+  { label: 'Normal', duration: 20000, icon: <Rabbit className="w-3 h-3" /> },
+  { label: 'Fast', duration: 10000, icon: <Zap className="w-3 h-3" /> },
 ];
 
 // Custom Label Component for Smooth Fade In
@@ -50,7 +51,7 @@ const FadeInLabel = (props: any) => {
 export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentVoteIndex, setCurrentVoteIndex] = useState(0); // This now tracks "Cluster Index" not "Vote Index"
-  const [selectedDuration, setSelectedDuration] = useState<number>(10000); // Default 10s
+  const [selectedDuration, setSelectedDuration] = useState<number>(20000); // Default to new Normal (20s)
   const [isDesktop, setIsDesktop] = useState(false);
   
   const requestRef = useRef<number>(0);
@@ -71,10 +72,13 @@ export const VoteTimeline: React.FC<VoteTimelineProps> = ({ votes }) => {
         if (timeDiff !== 0) return timeDiff;
         
         // Tie-breakers for sorting stability
+        // CHANGED: Prioritize Abstained over Brittany in ties so they render/animate slightly earlier in the sequence
+        if (a.candidate === Candidate.ABSTAINED && b.candidate !== Candidate.ABSTAINED) return -1;
+        if (b.candidate === Candidate.ABSTAINED && a.candidate !== Candidate.ABSTAINED) return 1;
+
         if (a.candidate === Candidate.BRITTANY_ANGEL && b.candidate !== Candidate.BRITTANY_ANGEL) return -1;
         if (b.candidate === Candidate.BRITTANY_ANGEL && a.candidate !== Candidate.BRITTANY_ANGEL) return 1;
-        if (a.candidate === Candidate.ABSTAINED && b.candidate !== Candidate.ABSTAINED) return 1;
-        if (b.candidate === Candidate.ABSTAINED && a.candidate !== Candidate.ABSTAINED) return -1;
+        
         return a.candidate.localeCompare(b.candidate);
     });
   }, [votes]);
