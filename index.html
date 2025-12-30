@@ -87,6 +87,11 @@
         0% { background-position: -1000px 0; }
         100% { background-position: 1000px 0; }
       }
+      
+      @keyframes softAlertPulse {
+        0%, 100% { background-color: rgba(2, 6, 23, 0.8); border-color: rgba(239, 68, 68, 0.2); }
+        50% { background-color: rgba(40, 10, 15, 0.9); border-color: rgba(239, 68, 68, 0.5); }
+      }
 
       .animate-fade-in-up {
         animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -103,6 +108,10 @@
 
       .animate-fade-in {
         animation: fadeIn 0.3s ease-out forwards;
+      }
+      
+      .animate-soft-alert {
+        animation: softAlertPulse 4s infinite ease-in-out;
       }
       
       /* Glass panel optimization: limit backdrop-filter usage or area */

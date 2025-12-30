@@ -100,7 +100,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onStatusChange }
 
   return (
     <ScrollReveal delay={50}>
-      <div className={`glass-panel rounded-xl p-3 md:px-6 md:py-4 mb-4 md:mb-6 relative overflow-hidden bg-[#020617]/80 border shadow-lg shadow-teal-900/5 transition-colors duration-500 ${timeLeft.isClosed ? 'border-red-500/20' : 'border-teal-500/20'}`}>
+      <div className={`glass-panel rounded-xl p-3 md:px-6 md:py-4 mb-4 md:mb-6 relative overflow-hidden bg-[#020617]/80 border shadow-lg shadow-teal-900/5 transition-colors duration-500 ${timeLeft.isClosed ? 'animate-soft-alert' : 'border-teal-500/20'}`}>
         
         {timeLeft.isClosed ? (
              <div className="flex flex-col items-center justify-center w-full animate-fade-in text-center py-2">
