@@ -100,44 +100,53 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onStatusChange }
 
   return (
     <ScrollReveal delay={50}>
-      <div className={`glass-panel rounded-xl p-3 md:px-6 md:py-3 mb-4 md:mb-6 flex flex-col md:flex-row items-center justify-between gap-3 relative overflow-hidden bg-[#020617]/80 border shadow-lg shadow-teal-900/5 transition-colors duration-500 ${timeLeft.isClosed ? 'border-red-500/20' : 'border-teal-500/20'}`}>
+      <div className={`glass-panel rounded-xl p-3 md:px-6 md:py-4 mb-4 md:mb-6 relative overflow-hidden bg-[#020617]/80 border shadow-lg shadow-teal-900/5 transition-colors duration-500 ${timeLeft.isClosed ? 'border-red-500/20' : 'border-teal-500/20'}`}>
         
-        {/* Left Side: Label */}
-        <div className="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
-           <div className={`p-2 rounded-lg animate-pulse border shadow-[0_0_10px_rgba(20,184,166,0.1)] hidden md:block ${timeLeft.isClosed ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-teal-500/10 text-teal-400 border-teal-500/20'}`}>
-              <Timer className="w-5 h-5" />
-           </div>
-           <div className="flex flex-col justify-center text-center md:text-left">
-              <span className={`text-xs md:text-base font-black uppercase tracking-widest leading-tight ${timeLeft.isClosed ? 'text-red-400' : 'text-white'}`}>
-                {timeLeft.isClosed ? "Voting Period Ended" : "Voting Ends"}
-              </span>
-              <span className="text-[9px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Monday 12:00 PM EST
-              </span>
-           </div>
-        </div>
-
-        {/* Right Side: Timer or Message */}
         {timeLeft.isClosed ? (
-             <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-center md:text-right w-full md:w-auto justify-center md:justify-end animate-fade-in">
-                <div className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-lg shrink-0">
-                    <span className="text-red-400 font-black uppercase tracking-widest text-xs">
-                      Closed
+             <div className="flex flex-col items-center justify-center w-full animate-fade-in text-center py-2">
+                <div className="flex items-center justify-center gap-3 mb-3">
+                    <Timer className="w-5 h-5 md:w-6 md:h-6 text-red-400 animate-pulse" />
+                    <span className="text-lg md:text-2xl font-black uppercase tracking-widest text-red-400 drop-shadow-sm">
+                      Voting Period Ended
                     </span>
                 </div>
-                <span className="text-xs md:text-sm font-medium text-teal-100/80 leading-tight max-w-md">
-                  Results announced <span className="text-white font-bold">Friday, Jan 2, 2026</span> at <span className="text-white font-bold">Galileo Observatory</span>
-                </span>
+                
+                <div className="flex flex-col items-center gap-1">
+                    <span className="text-base md:text-xl font-bold text-teal-100 leading-tight">
+                      Results will be announced
+                    </span>
+                    <span className="text-sm md:text-lg text-slate-400 font-medium mt-1">
+                      <span className="text-white font-bold">Wednesday, Dec 31, 2025</span> at <span className="text-teal-400 font-bold">Galileo Observatory</span>
+                    </span>
+                </div>
              </div>
         ) : (
-            <div className="flex items-center gap-1 md:gap-3 w-full md:w-auto justify-center">
-                <CompactUnit value={timeLeft.days} label="Days" />
-                <span className="text-slate-600 font-black text-lg pb-3 hidden sm:block">:</span>
-                <CompactUnit value={timeLeft.hours} label="Hrs" />
-                <span className="text-slate-600 font-black text-lg pb-3 hidden sm:block">:</span>
-                <CompactUnit value={timeLeft.minutes} label="Min" />
-                <span className="text-slate-600 font-black text-lg pb-3 hidden sm:block">:</span>
-                <CompactUnit value={timeLeft.seconds} label="Sec" />
+            <div className="flex flex-col md:flex-row items-center justify-between gap-3 w-full">
+                {/* Left Side: Label */}
+                <div className="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
+                   <div className="p-2 rounded-lg animate-pulse border shadow-[0_0_10px_rgba(20,184,166,0.1)] hidden md:block bg-teal-500/10 text-teal-400 border-teal-500/20">
+                      <Timer className="w-5 h-5" />
+                   </div>
+                   <div className="flex flex-col justify-center text-center md:text-left">
+                      <span className="text-xs md:text-base font-black uppercase tracking-widest leading-tight text-white">
+                        Voting Ends
+                      </span>
+                      <span className="text-[9px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        Monday 12:00 PM EST
+                      </span>
+                   </div>
+                </div>
+
+                {/* Right Side: Timer */}
+                <div className="flex items-center gap-1 md:gap-3 w-full md:w-auto justify-center">
+                    <CompactUnit value={timeLeft.days} label="Days" />
+                    <span className="text-slate-600 font-black text-lg pb-3 hidden sm:block">:</span>
+                    <CompactUnit value={timeLeft.hours} label="Hrs" />
+                    <span className="text-slate-600 font-black text-lg pb-3 hidden sm:block">:</span>
+                    <CompactUnit value={timeLeft.minutes} label="Min" />
+                    <span className="text-slate-600 font-black text-lg pb-3 hidden sm:block">:</span>
+                    <CompactUnit value={timeLeft.seconds} label="Sec" />
+                </div>
             </div>
         )}
       </div>
