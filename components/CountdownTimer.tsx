@@ -19,7 +19,10 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onStatusChange }
 
   const [dateTimeInfo, setDateTimeInfo] = useState<{date: string, time: string}>({ date: "", time: "" });
 
-  // Target: Wednesday, Dec 31, 2025 at 15:00 Brasilia Time (GMT-3)
+  // Fixed Election Dates
+  // Voting ends: Dec 29, 2025 12:00 (Brasilia Time)
+  const VOTING_END_TARGET = "2025-12-29T12:00:00-03:00";
+  // Results Announcement: Dec 31, 2025 15:00 (Brasilia Time)
   const ANNOUNCEMENT_TARGET = "2025-12-31T15:00:00-03:00";
 
   useEffect(() => {
@@ -55,34 +58,10 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onStatusChange }
     const calculateTimeLeft = () => {
       const now = new Date();
       
-      // NYC timezone handling for voting period
-      const nyFormatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/New_York',
-        year: 'numeric', month: 'numeric', day: 'numeric',
-        hour: 'numeric', minute: 'numeric', second: 'numeric',
-        hour12: false
-      });
+      const votingEndDate = new Date(VOTING_END_TARGET);
+      const votingDifference = votingEndDate.getTime() - now.getTime();
 
-      const parts = nyFormatter.formatToParts(now);
-      const getPart = (type: string) => parseInt(parts.find(p => p.type === type)?.value || '0', 10);
-      
-      const nyYear = getPart('year');
-      const nyMonth = getPart('month') - 1; 
-      const nyDay = getPart('day');
-      const nyHour = getPart('hour');
-      const nyMinute = getPart('minute');
-      const nySecond = getPart('second');
-
-      const nyNow = new Date(nyYear, nyMonth, nyDay, nyHour, nyMinute, nySecond);
-      const currentDay = nyNow.getDay(); 
-      let daysUntilMonday = (1 + 7 - currentDay) % 7;
-      
-      const votingTarget = new Date(nyNow);
-      votingTarget.setDate(nyNow.getDate() + daysUntilMonday);
-      votingTarget.setHours(12, 0, 0, 0);
-
-      const votingDifference = votingTarget.getTime() - nyNow.getTime();
-
+      // 1. Voting Period Logic
       if (votingDifference > 0) {
         return {
           days: Math.floor(votingDifference / (1000 * 60 * 60 * 24)),
@@ -94,6 +73,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onStatusChange }
           hasStarted: false
         };
       } else {
+        // 2. Announcement Period Logic
         const announcementTargetDate = new Date(ANNOUNCEMENT_TARGET);
         const announcementDifference = announcementTargetDate.getTime() - now.getTime();
         const hasStarted = announcementDifference <= 0;
@@ -226,7 +206,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onStatusChange }
                         Voting Ends
                       </span>
                       <span className="text-[9px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        Monday 12:00 PM EST
+                        Dec 29, 2025 at 12:00
                       </span>
                    </div>
                 </div>
