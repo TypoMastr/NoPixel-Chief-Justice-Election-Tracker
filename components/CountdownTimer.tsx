@@ -25,12 +25,14 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onStatusChange }
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-yellow-500/10 via-transparent to-transparent blur-[80px] pointer-events-none"></div>
             <div className="absolute inset-0 opacity-[0.1]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23EAB308' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }}></div>
 
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-8 md:p-12 gap-8 md:gap-12">
+            {/* Content Container - Added pt-20 for mobile crown space */}
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between pt-20 pb-10 px-8 md:p-12 gap-8 md:gap-12">
                 
                 {/* Left Side: Winner Image & Badge */}
                 <div className="relative flex-shrink-0">
-                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-yellow-500 animate-[bounce_3s_infinite]">
-                        <Crown className="w-12 h-12 fill-yellow-500/20 stroke-[1.5px] drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
+                    {/* Crown: Adjusted position to be safe within the padded container */}
+                    <div className="absolute -top-14 left-1/2 -translate-x-1/2 text-yellow-500 animate-[bounce_3s_infinite]">
+                        <Crown className="w-12 h-12 md:w-14 md:h-14 fill-yellow-500/20 stroke-[1.5px] drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
                     </div>
                     
                     <div className="relative w-40 h-40 md:w-56 md:h-56 flex items-center justify-center">
